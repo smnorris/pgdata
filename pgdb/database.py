@@ -6,7 +6,7 @@ import csv
 import psycopg2
 from psycopg2 import extras
 
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine
 from sqlalchemy.schema import CreateSchema, DropSchema
 from sqlalchemy.schema import MetaData
 from sqlalchemy.schema import Table as SQLATable
@@ -27,7 +27,6 @@ class Database(object):
         self.queries = self._load_queries()
         self.schema = schema
         self.engine = create_engine(url)
-        self.insp = inspect(self.engine)
         self.psycopg2 = self._get_connection()
 
     @property
@@ -35,14 +34,17 @@ class Database(object):
         """
         Get a listing of all schemas that exist in the database.
         """
-        return self.insp.get_schema_names()
+        sql = """SELECT schema_name FROM information_schema.schemata"""
+        return [t[0] for t in self.query(sql)]
+        #return self.insp.get_schema_names()
 
     @property
     def tables(self):
         """
         Get a listing of all tables in schema
         """
-        return self.insp.get_table_names(schema=self.schema)
+        return self.tables_in_schema(self.schema)
+        #return self.insp.get_table_names(schema=self.schema)
 
     def _get_connection(self):
         c = psycopg2.connect(database=self.database,
@@ -79,7 +81,10 @@ class Database(object):
         """
         Get a listing of all tables in given schema
         """
-        return self.insp.get_table_names(schema=schema)
+        sql = """SELECT table_name FROM information_schema.tables
+                 WHERE table_schema = %s"""
+        return [t[0] for t in self.query(sql, (schema,))]
+        #return self.insp.get_table_names(schema=schema)
 
     def parse_table_name(self, table):
         """
