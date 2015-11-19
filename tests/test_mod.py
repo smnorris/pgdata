@@ -36,6 +36,14 @@ def test_create_table():
     assert employees.table.exists()
 
 
+def test_create_index():
+    db = connect(DB, schema="pgdb")
+    indexname = 'employees_user_name_idx'
+    db['employees'].create_index(['user_name'], indexname)
+    indexes = db['employees'].indexes.keys()
+    assert indexname in indexes
+
+
 def test_tables_in_schema():
     db = connect(DB)
     tables = db.tables_in_schema("pgdb")

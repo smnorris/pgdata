@@ -16,7 +16,8 @@ from pgdb.util import normalize_column_name
 class Table(object):
 
     def __init__(self, db, schema, table, columns=None):
-        self.db = db
+        self.database = db
+        self.db = db          # just a shortcut
         self.schema = schema
         self.name = table
         self.metadata = MetaData(schema=schema)
@@ -140,15 +141,14 @@ class Table(object):
 
     def create_index(self, columns, name=None):
         """
-        Create an index to speed up queries on a table. If no ``name`` is given a random name is created.
+        Create an index to speed up queries on a table.
+        If no ``name`` is given a random name is created.
         ::
-
             table.create_index(['name', 'country'])
         """
         self._check_dropped()
-        if not name and len(columns > 1):
+        if not name:
             sig = '||'.join(columns)
-
             # This is a work-around for a bug in <=0.6.1 which would create
             # indexes based on hash() rather than a proper hash.
             key = abs(hash(sig))
@@ -157,8 +157,6 @@ class Table(object):
                 return self.indexes[name]
             key = sha1(sig.encode('utf-8')).hexdigest()[:16]
             name = 'ix_%s_%s' % (self.table.name, key)
-        elif not name and len(columns == 1):
-            name = columns[0]+"_idx"
         if name in self.indexes:
             return self.indexes[name]
         try:
