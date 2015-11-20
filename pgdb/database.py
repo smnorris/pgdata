@@ -81,7 +81,8 @@ class Database(object):
         """
         Get a listing of all tables in given schema
         """
-        sql = """SELECT table_name FROM information_schema.tables
+        sql = """SELECT table_name
+                 FROM information_schema.tables
                  WHERE table_schema = %s"""
         return [t[0] for t in self.query(sql, (schema,))]
         #return self.insp.get_table_names(schema=schema)
