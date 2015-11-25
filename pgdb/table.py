@@ -1,8 +1,10 @@
+import six
 from hashlib import sha1
 
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.schema import MetaData
 from sqlalchemy.schema import Column, Index
+from sqlalchemy.sql import and_, expression, text
 
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
@@ -11,6 +13,7 @@ from geoalchemy2 import Geometry
 
 from pgdb.util import DatasetException
 from pgdb.util import normalize_column_name
+from pgdb.util import ResultIter
 
 
 class Table(object):
@@ -62,7 +65,7 @@ class Table(object):
 
     @property
     def op(self):
-        ctx = MigrationContext.configure(self.engine)
+        ctx = MigrationContext.configure(self.db.engine)
         return Operations(ctx)
 
     def _valid_table_name(self, table_name):
@@ -170,3 +173,52 @@ class Table(object):
         #    self.database._release()
         self.indexes[name] = idx
         return idx
+
+    def query(self, query, **kw):
+        """
+        Run a statement on the table directly, allowing for the
+        execution of arbitrary read/write queries. A query can either be
+        a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_.
+        If a plain string is passed in, it will be converted to an expression automatically.
+
+        Keyword arguments will be used for parameter binding. See the `SQLAlchemy
+        documentation <http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html#sqlalchemy.engine.Connection.execute>`_ for details.
+
+        The returned iterator will yield each result sequentially.
+        ::
+
+            res = db.query('SELECT user, COUNT(*) c FROM photos GROUP BY user')
+            for row in res:
+                print(row['user'], row['c'])
+        """
+        if isinstance(query, six.string_types):
+            query = text(query)
+        return ResultIter(self.executable.execute(query, **kw),
+                          row_type=self.row_type)
+
+    def distinct(self, *columns, **_filter):
+        """
+        Returns all rows of a table, but removes rows in with duplicate values in ``columns``.
+        Interally this creates a `DISTINCT statement <http://www.w3schools.com/sql/sql_distinct.asp>`_.
+        ::
+
+            # returns only one row per year, ignoring the rest
+            table.distinct('year')
+            # works with multiple columns, too
+            table.distinct('year', 'country')
+            # you can also combine this with a filter
+            table.distinct('year', country='China')
+        """
+        self._check_dropped()
+        qargs = []
+        try:
+            columns = [self.table.c[c] for c in columns]
+            for col, val in _filter.items():
+                qargs.append(self.table.c[col] == val)
+        except KeyError:
+            return []
+
+        q = expression.select(columns, distinct=True,
+                              whereclause=and_(*qargs),
+                              order_by=[c.asc() for c in columns])
+        return self.db.engine.execute(q)
