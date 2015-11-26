@@ -1,3 +1,4 @@
+import itertools
 import six
 from hashlib import sha1
 
@@ -194,7 +195,7 @@ class Table(object):
         if isinstance(query, six.string_types):
             query = text(query)
         return ResultIter(self.executable.execute(query, **kw),
-                          row_type=self.row_type)
+                          row_type=self.db.row_type)
 
     def distinct(self, *columns, **_filter):
         """
@@ -221,4 +222,10 @@ class Table(object):
         q = expression.select(columns, distinct=True,
                               whereclause=and_(*qargs),
                               order_by=[c.asc() for c in columns])
-        return self.db.engine.execute(q)
+        # if just looking at one column, return a simple list
+        if len(columns) == 1:
+            return itertools.chain.from_iterable(self.db.engine.execute(q))
+        # otherwise return specified row_type
+        else:
+            return ResultIter(self.db.engine.execute(q),
+                              row_type=self.db.row_type)

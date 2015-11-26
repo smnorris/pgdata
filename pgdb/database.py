@@ -11,11 +11,12 @@ from sqlalchemy.schema import CreateSchema, DropSchema
 from sqlalchemy.schema import MetaData
 from sqlalchemy.schema import Table as SQLATable
 
+from util import row_type
 from table import Table
 
 
 class Database(object):
-    def __init__(self, url, schema=None):
+    def __init__(self, url, schema=None, row_type=row_type):
         self.url = url
         u = urlparse.urlparse(url)
         self.database = u.path[1:]
@@ -28,6 +29,7 @@ class Database(object):
         self.schema = schema
         self.engine = create_engine(url)
         self.psycopg2 = self._get_connection()
+        self.row_type = row_type
 
     @property
     def schemas(self):
@@ -178,6 +180,8 @@ class Database(object):
             return Table(self, schema, table, columns)
 
     def to_csv(self, sql, outFile, params=None):
+        # this could likely be replaced with this:
+        # http://initd.org/psycopg/docs/cursor.html#cursor.copy_expert
         cur = self._get_cursor()
         cur.execute(sql, params)
         colnames = [desc[0] for desc in cur.description]
