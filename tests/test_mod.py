@@ -11,6 +11,11 @@ def test_connect():
     assert db.url == "postgresql://postgres:postgres@localhost:5432/pgdb"
 
 
+def test_list_schema():
+    db = connect(DB, schema="pgdb")
+    assert db.schemas == ["information_schema", "public"]
+
+
 def test_wipe_schema():
     db = connect(DB, schema="pgdb")
     db.wipe_schema()

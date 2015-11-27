@@ -34,18 +34,33 @@ class Database(object):
     @property
     def schemas(self):
         """
-        Get a listing of all schemas that exist in the database.
+        Get a listing of all non-system schemas (prefixed with 'pg_') that
+        exist in the database.
         """
-        sql = """SELECT schema_name FROM information_schema.schemata"""
-        return [t[0] for t in self.query(sql)]
+        sql = """SELECT schema_name FROM information_schema.schemata
+                 ORDER BY schema_name"""
+        schemas = self.query(sql)
+        return [s[0] for s in schemas if s[0][:3] != 'pg_']
+        #return [t[0] for t in self.query(sql) if t[0][0][:3] != ['pg_']]
         #return self.insp.get_schema_names()
 
     @property
     def tables(self):
         """
-        Get a listing of all tables in schema
+        Get a listing of all tables
+          - if schema specified on connect, return unqualifed table names in
+            that schema
+          - in schema specified on connect, return all tables, with schema
+            prefixes
         """
-        return self.tables_in_schema(self.schema)
+        if self.schema:
+            return self.tables_in_schema(self.schema)
+        else:
+            tables = []
+            for schema in self.schemas:
+                tables = tables +  \
+                          [schema+"."+t for t in self.tables_in_schema(schema)]
+            return tables
         #return self.insp.get_table_names(schema=self.schema)
 
     def _get_connection(self):
@@ -132,6 +147,7 @@ class Database(object):
         """
         Run a statement on the database directly, allowing for the
         execution of arbitrary read/write queries.
+        Non-lazy - all results are fetched.
         """
         cur = self._get_cursor()
         cur.execute(sql, params)
