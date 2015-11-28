@@ -10,7 +10,9 @@ from sqlalchemy.sql import and_, expression, text
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
 
+# load custom types to stop sqlalchemy from complaining
 from geoalchemy2 import Geometry
+import ltree
 
 from pgdb.util import DatasetException
 from pgdb.util import normalize_column_name
@@ -139,7 +141,8 @@ class Table(object):
         if name in self.table.columns.keys():
             self.op.drop_column(
                 self.table.name,
-                name
+                name,
+                schema=self.schema
             )
             self.table = self._update_table(self.table.name)
 
