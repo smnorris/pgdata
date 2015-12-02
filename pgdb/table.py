@@ -1,11 +1,13 @@
 import itertools
 import six
 from hashlib import sha1
+import logging
 
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.schema import MetaData
 from sqlalchemy.schema import Column, Index
 from sqlalchemy.sql import and_, expression, text
+from sqlalchemy import alias
 
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
@@ -17,6 +19,8 @@ import ltree
 from pgdb.util import DatasetException
 from pgdb.util import normalize_column_name
 from pgdb.util import ResultIter
+
+log = logging.getLogger(__name__)
 
 
 class Table(object):
@@ -120,13 +124,14 @@ class Table(object):
         if self._is_dropped:
             raise DatasetException('the table has been dropped. this object should not be used again.')
 
-    def create_index_geom(self, column="geom"):
-        """
-        create index on geometry
-        """
-        self.db.execute('CREATE INDEX "idx_%s_%s" ON "%s"."%s" '
-                        'USING GIST ("%s")' % (self.name, column, self.schema,
-                                               self.name, column))
+    def _args_to_clause(self, args):
+        clauses = []
+        for k, v in args.items():
+            if isinstance(v, (list, tuple)):
+                clauses.append(self.table.c[k].in_(v))
+            else:
+                clauses.append(self.table.c[k] == v)
+        return and_(*clauses)
 
     def create_column(self, name, type):
         """
@@ -192,6 +197,12 @@ class Table(object):
         #    self.database._release()
         self.indexes[name] = idx
         return idx
+
+    def create_index_geom(self, column="geom"):
+        """
+        shortcut to create index on geometry
+        """
+        self.create_index(column, index_type="gist")
 
     def query(self, query, **kw):
         """
@@ -292,3 +303,112 @@ class Table(object):
         self.database.engine.execute(sql)
         self.table = SQLATable(name, self.metadata, schema=self.schema,
                                autoload=True)
+
+    def _args_to_order_by(self, order_by):
+        if order_by[0] == '-':
+            return self.table.c[order_by[1:]].desc()
+        else:
+            return self.table.c[order_by].asc()
+
+    def find(self, _limit=None, _offset=0, _step=5000,
+             order_by='id', return_count=False, **_filter):
+        """
+        Performs a simple search on the table. Simply pass keyword arguments as ``filter``.
+        ::
+            results = table.find(country='France')
+            results = table.find(country='France', year=1980)
+        Using ``_limit``::
+            # just return the first 10 rows
+            results = table.find(country='France', _limit=10)
+        You can sort the results by single or multiple columns. Append a minus sign
+        to the column name for descending order::
+            # sort results by a column 'year'
+            results = table.find(country='France', order_by='year')
+            # return all rows sorted by multiple columns (by year in descending order)
+            results = table.find(order_by=['country', '-year'])
+        By default :py:meth:`find() <dataset.Table.find>` will break the
+        query into chunks of ``_step`` rows to prevent huge tables
+        from being loaded into memory at once.
+        For more complex queries, please use :py:meth:`db.query()`
+        instead."""
+        self._check_dropped()
+        if not isinstance(order_by, (list, tuple)):
+            order_by = [order_by]
+        order_by = [o for o in order_by if (o.startswith('-') and o[1:] or o) in self.table.columns]
+        order_by = [self._args_to_order_by(o) for o in order_by]
+
+        args = self._args_to_clause(_filter)
+
+        # query total number of rows first
+        count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset),
+                            name='count_query_alias').count()
+        rp = self.database.executable.execute(count_query)
+        total_row_count = rp.fetchone()[0]
+        if return_count:
+            return total_row_count
+
+        if _limit is None:
+            _limit = total_row_count
+
+        if _step is None or _step is False or _step == 0:
+            _step = total_row_count
+
+        if total_row_count > _step and not order_by:
+            _step = total_row_count
+            log.warn("query cannot be broken into smaller sections because it is unordered")
+
+        queries = []
+
+        for i in count():
+            qoffset = _offset + (_step * i)
+            qlimit = min(_limit - (_step * i), _step)
+            if qlimit <= 0:
+                break
+            queries.append(self.table.select(whereclause=args, limit=qlimit,
+                                             offset=qoffset, order_by=order_by))
+        return ResultIter((self.database.executable.execute(q) for q in queries),
+                          row_type=self.database.row_type)
+
+    def count(self, **_filter):
+        """
+        Return the count of results for the given filter set (same filter options as with ``find()``).
+        """
+        return self.find(return_count=True, **_filter)
+
+    def __len__(self):
+        """
+        Returns the number of rows in the table.
+        """
+        return self.count()
+
+    def __getitem__(self, item):
+        """ This is an alias for distinct which allows the table to be queried as using
+        square bracket syntax.
+        ::
+            # Same as distinct:
+            print list(table['year'])
+        """
+        if not isinstance(item, tuple):
+            item = item,
+        return self.distinct(*item)
+
+    def all(self):
+        """
+        Returns all rows of the table as simple dictionaries. This is simply a shortcut
+        to *find()* called with no arguments.
+        ::
+            rows = table.all()"""
+        return self.find()
+
+    def __iter__(self):
+        """
+        Allows for iterating over all rows in the table without explicetly
+        calling :py:meth:`all() <dataset.Table.all>`.
+        ::
+            for row in table:
+                print(row)
+        """
+        return self.all()
+
+    def __repr__(self):
+        return '<Table(%s)>' % self.table.name
