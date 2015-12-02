@@ -30,16 +30,20 @@ class Table(object):
         self.metadata.bind = self.db.engine
         # http://docs.sqlalchemy.org/en/rel_1_0/core/metadata.html
         # if provided columns (SQLAlchemy columns), create the table
-        if columns:
-            self.table = SQLATable(table, self.metadata, schema=self.schema,
-                                   *columns)
-            self.table.create()
-        # otherwise just load from db
+        if table:
+            if columns:
+                self.table = SQLATable(table, self.metadata, schema=self.schema,
+                                       *columns)
+                self.table.create()
+            # otherwise just load from db
+            else:
+                self.table = SQLATable(table, self.metadata, schema=self.schema,
+                                       autoload=True)
+            self.indexes = dict((i.name, i) for i in self.table.indexes)
+            self._is_dropped = False
         else:
-            self.table = SQLATable(table, self.metadata, schema=self.schema,
-                                   autoload=True)
-        self.indexes = dict((i.name, i) for i in self.table.indexes)
-        self._is_dropped = False
+            self._is_dropped = True
+            self.table = None
 
     @property
     def _normalized_columns(self):
@@ -58,6 +62,16 @@ class Table(object):
         Return all columns in table as sqlalchemy column types
         """
         return self.table.columns
+
+    @property
+    def column_types(self):
+        """
+        Return a dict mapping column name to type for all columns in table
+        """
+        column_types = {}
+        for c in self.sqla_columns:
+            column_types[c.name] = c.type
+        return column_types
 
     @property
     def primary_key(self):
@@ -98,8 +112,9 @@ class Table(object):
         """
         Drop the table from the database
         """
+        if self._is_dropped is False:
+            self.table.drop(self.db.engine)
         self._is_dropped = True
-        self.table.drop(self.db.engine)
 
     def _check_dropped(self):
         if self._is_dropped:
@@ -146,7 +161,7 @@ class Table(object):
             )
             self.table = self._update_table(self.table.name)
 
-    def create_index(self, columns, name=None):
+    def create_index(self, columns, name=None, index_type="btree"):
         """
         Create an index to speed up queries on a table.
         If no ``name`` is given a random name is created.
@@ -169,7 +184,7 @@ class Table(object):
         try:
             #self.database._acquire()
             columns = [self.table.c[c] for c in columns]
-            idx = Index(name, *columns)
+            idx = Index(name, *columns, postgresql_using=index_type)
             idx.create(self.database.engine)
         except:
             idx = None
@@ -232,3 +247,48 @@ class Table(object):
         else:
             return ResultIter(self.db.engine.execute(q),
                               row_type=self.db.row_type)
+
+    def insert(self, row):
+        """
+        Add a row (type: dict) by inserting it into the table.
+        Columns must exist.
+        ::
+            data = dict(title='I am a banana!')
+            table.insert(data)
+        Returns the inserted row's primary key.
+        """
+        self._check_dropped()
+        res = self.database.engine.execute(self.table.insert(row))
+        if len(res.inserted_primary_key) > 0:
+            return res.inserted_primary_key[0]
+
+    def insert_many(self, rows, chunk_size=1000):
+        """
+        Add many rows at a time, which is significantly faster than adding
+        them one by one. Per default the rows are processed in chunks of
+        1000 per commit, unless you specify a different ``chunk_size``.
+        See :py:meth:`insert() <dataset.Table.insert>` for details on
+        the other parameters.
+        ::
+            rows = [dict(name='Dolly')] * 10000
+            table.insert_many(rows)
+        """
+        def _process_chunk(chunk):
+            self.table.insert().execute(chunk)
+        self._check_dropped()
+
+        chunk = []
+        for i, row in enumerate(rows, start=1):
+            chunk.append(row)
+            if i % chunk_size == 0:
+                _process_chunk(chunk)
+                chunk = []
+        if chunk:
+            _process_chunk(chunk)
+
+    def rename(self, name):
+        sql = """ALTER TABLE {s}.{t} RENAME TO {name}
+              """.format(s=self.schema, t=self.name, name=name)
+        self.database.engine.execute(sql)
+        self.table = SQLATable(name, self.metadata, schema=self.schema,
+                               autoload=True)

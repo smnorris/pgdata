@@ -41,8 +41,6 @@ class Database(object):
                  ORDER BY schema_name"""
         schemas = self.query(sql)
         return [s[0] for s in schemas if s[0][:3] != 'pg_']
-        #return [t[0] for t in self.query(sql) if t[0][0][:3] != ['pg_']]
-        #return self.insp.get_schema_names()
 
     @property
     def tables(self):
@@ -50,7 +48,7 @@ class Database(object):
         Get a listing of all tables
           - if schema specified on connect, return unqualifed table names in
             that schema
-          - in schema specified on connect, return all tables, with schema
+          - in no schema specified on connect, return all tables, with schema
             prefixes
         """
         if self.schema:
@@ -68,15 +66,20 @@ class Database(object):
                              user=self.user,
                              password=self.password,
                              host=self.host,
-                             port=self.port)
+                             port=self.port,
+                             cursor_factory=extras.DictCursor)
         c.autocommit = True
         return c
 
     def __getitem__(self, table):
-        return self.load_table(table)
+        if table in self.tables:
+            return self.load_table(table)
+        # if table doesn't exist, return empty table object
+        else:
+            return Table(self, "public", None)
 
     def _get_cursor(self):
-        return self.psycopg2.cursor(cursor_factory=extras.DictCursor)
+        return self.psycopg2.cursor()
 
     def _valid_table_name(self, table):
         """ Check if the table name is obviously invalid. """
@@ -94,6 +97,23 @@ class Database(object):
                 queries[key] = unicode(f.read())
         return queries
 
+    def build_query(self, sql, lookup):
+        """
+        Modify table and field name variables in a sql string with a dict.
+        This seems to be discouraged by psycopg2 docs but it makes small
+        adjustments to large sql strings much easier, making prepped queries
+        much more versatile.
+
+        USAGE
+        sql = 'SELECT $myInputField FROM $myInputTable'
+        lookup = {'myInputField':'customer_id', 'myInputTable':'customers'}
+        sql = db.build_query(sql, lookup)
+
+        """
+        for key, val in lookup.iteritems():
+            sql = sql.replace('$'+key, val)
+        return sql
+
     def tables_in_schema(self, schema):
         """
         Get a listing of all tables in given schema
@@ -102,7 +122,6 @@ class Database(object):
                  FROM information_schema.tables
                  WHERE table_schema = %s"""
         return [t[0] for t in self.query(sql, (schema,))]
-        #return self.insp.get_table_names(schema=schema)
 
     def parse_table_name(self, table):
         """
@@ -168,12 +187,12 @@ class Database(object):
         if schema not in self.schemas:
             self.engine.execute(CreateSchema(schema))
 
-    def drop_schema(self, schema):
+    def drop_schema(self, schema, cascade=False):
         """
         Drop specified schema
         """
         if schema in self.schemas:
-            self.engine.execute(DropSchema(schema))
+            self.engine.execute(DropSchema(schema, cascade=cascade))
 
     def wipe_schema(self):
         """
