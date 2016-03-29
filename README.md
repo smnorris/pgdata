@@ -1,13 +1,14 @@
 # pgdb
 
-A collection of common postgres tasks, wrapped around psycopg2 and sqlalchemy and taken mostly from a fork of [dataset](https://dataset.readthedocs.org/)
+An irregularly maintained collection of python functions for working with postgres, posted here for my own convenience... you probably shouldn't use this. The module wraps around psycopg2 and sqlalchemy and was taken almost verbatim from a fork of [dataset](https://dataset.readthedocs.org/)
 
 Primary differences from dataset:
 - schema handling improved (although dataset may be better now)
+- adds some functions and types that are useful (mostly postgis related)
 - a raw psycopg2 connection is used for custom sql (`query` and `execute` functions) rather than going through sqlalchemy
-- functions I don't need have been removed (locking, freezing, etc)
+- many dataset functions I don't need are stripped (locking, freezing, etc)
 
-https://github.com/paulchakravarti/pgwrap also used for inspiration.
+https://github.com/paulchakravarti/pgwrap was also used for inspiration.
 
 ## Usage
 
