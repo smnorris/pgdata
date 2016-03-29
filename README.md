@@ -11,9 +11,11 @@ https://github.com/paulchakravarti/pgwrap also used for inspiration.
 
 ## Usage
 
+```
 import pgdb
 
 db = pgdb.connect()
 db.tables
 db["mytable"].columns
 data = db.query("SELECT count(*) FROM inventory WHERE type = %s", ('spam',))
+```
