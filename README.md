@@ -1,21 +1,31 @@
 # pgdb
 
-A collection of common postgres tasks, wrapped around psycopg2 and sqlalchemy.
+A collection of common postgres tasks, wrapped around psycopg2 and sqlalchemy and taken mostly from a fork of [dataset](https://dataset.readthedocs.org/)
 
-Raw psycopg2 is used for speedy queries and executes.
-The sqlalchemy engine is used for inspection and schema manipulation.
-
-table.py is taken almost verbatim from [dataset](https://dataset.readthedocs.org/), but with many features removed. (I'm unsure how locking works or why it is necessary so it is not included)
+Primary differences from dataset:
+- schema handling improved (although dataset may be better now)
+- a raw psycopg2 connection is used for custom sql (`query` and `execute` functions) rather than going through sqlalchemy
+- functions I don't need have been removed (locking, freezing, etc)
 
 https://github.com/paulchakravarti/pgwrap also used for inspiration.
 
 ## Usage
 
-```
-import pgdb
+See [dataset](https://dataset.readthedocs.org/) for most usage.
 
-db = pgdb.connect()
-db.tables
-db["mytable"].columns
-data = db.query("SELECT count(*) FROM inventory WHERE type = %s", ('spam',))
 ```
+>>> import pgdb
+>>> db = pgdb.connect(schema='myschema')
+>>> db.tables
+['inventory']
+>>> db["inventory"].columns
+['type', 'supplier', 'cost']
+>>> data = db.query("SELECT * FROM inventory WHERE type = %s", ('spam',))
+>>> for row in data:
+>>>     print (row['type'], row['supplier'], row['cost'])
+('spam', 'spamcorp', 100)
+>>> for row in db["inventory"].find(type='spam'):
+>>>     print (row['type'], row['supplier'], row['cost'])
+('spam', 'spamcorp', 100)
+```
+
