@@ -2,6 +2,7 @@ import itertools
 import six
 from hashlib import sha1
 import logging
+from itertools import count
 
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.schema import MetaData
@@ -186,13 +187,10 @@ class Table(object):
             name = 'ix_%s_%s' % (self.table.name, key)
         if name in self.indexes:
             return self.indexes[name]
-        try:
-            #self.database._acquire()
-            columns = [self.table.c[c] for c in columns]
-            idx = Index(name, *columns, postgresql_using=index_type)
-            idx.create(self.database.engine)
-        except:
-            idx = None
+        #self.database._acquire()
+        columns = [self.table.c[col] for col in columns]
+        idx = Index(name, *columns, postgresql_using=index_type)
+        idx.create(self.database.engine)
         #finally:
         #    self.database._release()
         self.indexes[name] = idx
@@ -202,29 +200,7 @@ class Table(object):
         """
         shortcut to create index on geometry
         """
-        self.create_index(column, index_type="gist")
-
-    def query(self, query, **kw):
-        """
-        Run a statement on the table directly, allowing for the
-        execution of arbitrary read/write queries. A query can either be
-        a plain text string, or a `SQLAlchemy expression <http://docs.sqlalchemy.org/en/latest/core/tutorial.html#selecting>`_.
-        If a plain string is passed in, it will be converted to an expression automatically.
-
-        Keyword arguments will be used for parameter binding. See the `SQLAlchemy
-        documentation <http://docs.sqlalchemy.org/en/rel_0_9/core/connections.html#sqlalchemy.engine.Connection.execute>`_ for details.
-
-        The returned iterator will yield each result sequentially.
-        ::
-
-            res = db.query('SELECT user, COUNT(*) c FROM photos GROUP BY user')
-            for row in res:
-                print(row['user'], row['c'])
-        """
-        if isinstance(query, six.string_types):
-            query = text(query)
-        return ResultIter(self.executable.execute(query, **kw),
-                          row_type=self.db.row_type)
+        self.create_index([column], index_type="gist")
 
     def distinct(self, *columns, **_filter):
         """
@@ -304,6 +280,19 @@ class Table(object):
         self.table = SQLATable(name, self.metadata, schema=self.schema,
                                autoload=True)
 
+    def find_one(self, **kwargs):
+        """
+        Works just like :py:meth:`find() <dataset.Table.find>` but returns one result, or None.
+        ::
+            row = table.find_one(country='United States')
+        """
+        kwargs['_limit'] = 1
+        iterator = self.find(**kwargs)
+        try:
+            return next(iterator)
+        except StopIteration:
+            return None
+
     def _args_to_order_by(self, order_by):
         if order_by[0] == '-':
             return self.table.c[order_by[1:]].desc()
@@ -342,7 +331,7 @@ class Table(object):
         # query total number of rows first
         count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset),
                             name='count_query_alias').count()
-        rp = self.database.executable.execute(count_query)
+        rp = self.db.engine.execute(count_query)
         total_row_count = rp.fetchone()[0]
         if return_count:
             return total_row_count
@@ -366,7 +355,7 @@ class Table(object):
                 break
             queries.append(self.table.select(whereclause=args, limit=qlimit,
                                              offset=qoffset, order_by=order_by))
-        return ResultIter((self.database.executable.execute(q) for q in queries),
+        return ResultIter((self.db.engine.execute(q) for q in queries),
                           row_type=self.database.row_type)
 
     def count(self, **_filter):
@@ -375,11 +364,11 @@ class Table(object):
         """
         return self.find(return_count=True, **_filter)
 
-    def __len__(self):
-        """
-        Returns the number of rows in the table.
-        """
-        return self.count()
+    #def __len__(self):
+    #    """
+    #    Returns the number of rows in the table.
+    #    """
+    #    return self.count()
 
     def __getitem__(self, item):
         """ This is an alias for distinct which allows the table to be queried as using

@@ -16,7 +16,7 @@ from table import Table
 
 
 class Database(object):
-    def __init__(self, url, schema=None, row_type=row_type):
+    def __init__(self, url, schema=None, row_type=row_type, sql_path='sql'):
         self.url = url
         u = urlparse.urlparse(url)
         self.database = u.path[1:]
@@ -24,12 +24,13 @@ class Database(object):
         self.password = u.password
         self.host = u.hostname
         self.port = u.port
-        self.sqlPath = os.path.join(os.path.dirname(__file__), 'sql')
-        self.queries = self._load_queries()
+        #self.sql_path = os.path.join(os.path.dirname(__file__), 'sql')
+        self.sql_path = sql_path
         self.schema = schema
         self.engine = create_engine(url)
-        self.psycopg2 = self._get_connection()
+        self.psycopg2_conn = self._get_connection()
         self.row_type = row_type
+        self.queries = self.load_queries(sql_path)
 
     @property
     def schemas(self):
@@ -71,6 +72,10 @@ class Database(object):
         c.autocommit = True
         return c
 
+    def print_notices(self):
+        for notice in self.psycopg2_conn.notices:
+            print notice
+
     def __getitem__(self, table):
         if table in self.tables:
             return self.load_table(table)
@@ -79,7 +84,7 @@ class Database(object):
             return Table(self, "public", None)
 
     def _get_cursor(self):
-        return self.psycopg2.cursor()
+        return self.psycopg2_conn.cursor()
 
     def _valid_table_name(self, table):
         """ Check if the table name is obviously invalid. """
@@ -87,15 +92,18 @@ class Database(object):
             raise ValueError("Invalid table name: %r" % table)
         return table.strip()
 
-    def _load_queries(self):
-        """ load stored queries """
-        sqlfiles = glob.glob(os.path.join(self.sqlPath, "*.sql"))
-        queries = {}
-        for filename in sqlfiles:
-            with open(filename, 'rb') as f:
-                key = os.path.splitext(os.path.basename(filename))[0]
-                queries[key] = unicode(f.read())
-        return queries
+    def load_queries(self, path):
+        """ load stored queries from specified path and return a dict"""
+        if os.path.exists(path):
+            sqlfiles = glob.glob(os.path.join(path, "*.sql"))
+            queries = {}
+            for filename in sqlfiles:
+                with open(filename, 'rb') as f:
+                    key = os.path.splitext(os.path.basename(filename))[0]
+                    queries[key] = unicode(f.read())
+            return queries
+        else:
+            return {}
 
     def build_query(self, sql, lookup):
         """
@@ -154,7 +162,7 @@ class Database(object):
         Execute something against the database where nothing is expected to be
         returned.
         """
-        self._get_cursor().execute(sql, params)
+        return self._get_cursor().execute(sql, params)
 
     def execute_many(self, sql, params):
         """
