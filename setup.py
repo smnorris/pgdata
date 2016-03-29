@@ -24,7 +24,8 @@ setup(name='pgdb',
           'click',
           'psycopg2',
           'sqlalchemy',
-          'geoalchemy2'
+          'geoalchemy2',
+          'alembic'
       ],
       extras_require={
           'test': ['pytest'],

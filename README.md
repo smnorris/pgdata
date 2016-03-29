@@ -10,6 +10,15 @@ Primary differences from dataset:
 
 https://github.com/paulchakravarti/pgwrap was also used for inspiration.
 
+## Requirements
+- postgresql
+- postgis
+- sqlalchemy
+- psycopg2
+- geoalchemy2
+- click
+- alembic
+
 ## Usage
 
 See [dataset](https://dataset.readthedocs.org/) for most usage.
