@@ -222,14 +222,14 @@ class Database(object):
         else:
             return Table(self, schema, table, columns)
 
-    def to_csv(self, sql, outFile, params=None):
+    def to_csv(self, sql, out_file, params=None):
         # this could likely be replaced with this:
         # http://initd.org/psycopg/docs/cursor.html#cursor.copy_expert
         cur = self._get_cursor()
         cur.execute(sql, params)
         colnames = [desc[0] for desc in cur.description]
         data = cur.fetchall()
-        with open(outFile, "wb") as csvfile:
+        with open(out_file, "wb") as csvfile:
             writer = csv.writer(csvfile)
             # write header
             writer.writerow(colnames)
