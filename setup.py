@@ -21,7 +21,6 @@ setup(name='pgdb',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'click',
           'psycopg2',
           'sqlalchemy',
           'sqlalchemy-utils',

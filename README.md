@@ -16,7 +16,7 @@ https://github.com/paulchakravarti/pgwrap was also used for inspiration.
 - sqlalchemy
 - psycopg2
 - geoalchemy2
-- click
+- sqlalchemy-utils
 - alembic
 
 ## Usage
