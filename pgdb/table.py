@@ -15,7 +15,7 @@ from alembic.operations import Operations
 
 # load custom types to stop sqlalchemy from complaining
 from geoalchemy2 import Geometry
-import ltree
+from sqlalchemy_utils import LtreeType
 
 from pgdb.util import DatasetException
 from pgdb.util import normalize_column_name

@@ -123,8 +123,7 @@ class Database(object):
         return sql
 
     def tables_in_schema(self, schema):
-        """
-        Get a listing of all tables in given schema
+        """Get a listing of all tables in given schema
         """
         sql = """SELECT table_name
                  FROM information_schema.tables
@@ -132,8 +131,7 @@ class Database(object):
         return [t[0] for t in self.query(sql, (schema,))]
 
     def parse_table_name(self, table):
-        """
-        parse schema qualified table name
+        """parse schema qualified table name
         """
         if "." in table:
             schema, table = table.split('.')
@@ -142,8 +140,7 @@ class Database(object):
         return (schema, table)
 
     def load_table(self, table):
-        """
-        Loads a table. Returns None if the table does not already exist in db
+        """Loads a table. Returns None if the table does not already exist in db
         """
         table = self._valid_table_name(table)
         schema, table = self.parse_table_name(table)
@@ -165,8 +162,7 @@ class Database(object):
         return self._get_cursor().execute(sql, params)
 
     def execute_many(self, sql, params):
-        """
-        wrapper for executemany.
+        """wrapper for executemany.
         """
         self._get_cursor().executemany(sql, params)
 
@@ -181,37 +177,32 @@ class Database(object):
         return cur.fetchall()
 
     def query_one(self, sql, params=None):
-        """
-        Grab just one record
+        """Grab just one record
         """
         cur = self._get_cursor()
         cur.execute(sql, params)
         return cur.fetchone()
 
     def create_schema(self, schema):
-        """
-        Create specified schema if it does not already exist
+        """Create specified schema if it does not already exist
         """
         if schema not in self.schemas:
             self.engine.execute(CreateSchema(schema))
 
     def drop_schema(self, schema, cascade=False):
-        """
-        Drop specified schema
+        """Drop specified schema
         """
         if schema in self.schemas:
             self.engine.execute(DropSchema(schema, cascade=cascade))
 
     def wipe_schema(self):
-        """
-        Delete all tables from current schema. Use with caution eh?
+        """Delete all tables from current schema. Use with caution eh?
         """
         for t in self.tables:
             self[t].drop()
 
     def create_table(self, table, columns):
-        """
-        Creates a table.
+        """Creates a table
         """
         schema, table = self.parse_table_name(table)
         table = self._valid_table_name(table)

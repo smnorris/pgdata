@@ -24,6 +24,7 @@ setup(name='pgdb',
           'click',
           'psycopg2',
           'sqlalchemy',
+          'sqlalchemy-utils',
           'geoalchemy2',
           'alembic'
       ],
