@@ -85,6 +85,7 @@ class Database(object):
 
     def _get_cursor(self):
         return self.psycopg2_conn.cursor()
+        #return self.engine.cursor()
 
     def _valid_table_name(self, table):
         """ Check if the table name is obviously invalid. """
@@ -159,12 +160,14 @@ class Database(object):
         Execute something against the database where nothing is expected to be
         returned.
         """
+        #return self.engine.execute(sql, params)
         return self._get_cursor().execute(sql, params)
 
     def execute_many(self, sql, params):
         """wrapper for executemany.
         """
         self._get_cursor().executemany(sql, params)
+        #self.engine.executemany(sql, params)
 
     def query(self, sql, params=None):
         """
@@ -175,6 +178,8 @@ class Database(object):
         cur = self._get_cursor()
         cur.execute(sql, params)
         return cur.fetchall()
+        #r = self.engine.execute(sql, params)
+        #return r.fetchall()
 
     def query_one(self, sql, params=None):
         """Grab just one record
@@ -182,6 +187,8 @@ class Database(object):
         cur = self._get_cursor()
         cur.execute(sql, params)
         return cur.fetchone()
+        #r = self.engine.execute(sql, params)
+        #return r.fetchone()
 
     def create_schema(self, schema):
         """Create specified schema if it does not already exist
