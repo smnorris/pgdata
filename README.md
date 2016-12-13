@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/smnorris/pgdb.svg?branch=master)](https://travis-ci.org/smnorris/pgdb)
+
+[![Coverage Status](https://coveralls.io/repos/github/smnorris/pgdb/badge.svg?branch=master)](https://coveralls.io/github/smnorris/pgdb?branch=master)
+
 # pgdb
 
 An irregularly maintained collection of python functions for working with postgres, posted here for my own convenience... you probably shouldn't use this. The module wraps around psycopg2 and sqlalchemy and was taken almost verbatim from a fork of [dataset](https://dataset.readthedocs.org/)
