@@ -5,6 +5,10 @@ python:
 install:
   - "pip install coveralls"
   - "pip install -e .[test]"
+services:
+  - postgresql
+before_script:
+  - psql -c 'create database pgdb;' -U postgres
 script:
   - py.test
   - coverage run --source=pgdb -m py.test
