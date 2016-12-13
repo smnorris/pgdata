@@ -1,7 +1,12 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import glob
-import urlparse
 import csv
+try:
+    from urllib.parse import urlparse
+except ImportError:
+     from urlparse import urlparse
 
 import psycopg2
 from psycopg2 import extras
@@ -11,20 +16,20 @@ from sqlalchemy.schema import CreateSchema, DropSchema
 from sqlalchemy.schema import MetaData
 from sqlalchemy.schema import Table as SQLATable
 
-from util import row_type
-from table import Table
+from .util import row_type
+from .table import Table
+import six
 
 
 class Database(object):
     def __init__(self, url, schema=None, row_type=row_type, sql_path='sql'):
         self.url = url
-        u = urlparse.urlparse(url)
+        u = urlparse(url)
         self.database = u.path[1:]
         self.user = u.username
         self.password = u.password
         self.host = u.hostname
         self.port = u.port
-        #self.sql_path = os.path.join(os.path.dirname(__file__), 'sql')
         self.sql_path = sql_path
         self.schema = schema
         self.engine = create_engine(url)
@@ -74,7 +79,7 @@ class Database(object):
 
     def print_notices(self):
         for notice in self.psycopg2_conn.notices:
-            print notice
+            print(notice)
 
     def __getitem__(self, table):
         if table in self.tables:
@@ -101,7 +106,7 @@ class Database(object):
             for filename in sqlfiles:
                 with open(filename, 'rb') as f:
                     key = os.path.splitext(os.path.basename(filename))[0]
-                    queries[key] = unicode(f.read())
+                    queries[key] = six.text_type(f.read())
             return queries
         else:
             return {}
@@ -119,7 +124,7 @@ class Database(object):
         sql = db.build_query(sql, lookup)
 
         """
-        for key, val in lookup.iteritems():
+        for key, val in six.iteritems(lookup):
             sql = sql.replace('$'+key, val)
         return sql
 

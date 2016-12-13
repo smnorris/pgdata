@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from collections import OrderedDict
 from six import string_types
 from inspect import isgenerator
@@ -21,7 +22,7 @@ def normalize_column_name(name):
 def convert_row(row_type, row):
     if row is None:
         return None
-    return row_type(row.items())
+    return row_type(list(row.items()))
 
 
 class ResultIter(object):

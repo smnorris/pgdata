@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import itertools
 import six
 from hashlib import sha1
@@ -20,6 +21,7 @@ from sqlalchemy_utils import LtreeType
 from pgdb.util import DatasetException
 from pgdb.util import normalize_column_name
 from pgdb.util import ResultIter
+from six.moves import map
 
 log = logging.getLogger(__name__)
 
@@ -52,7 +54,7 @@ class Table(object):
 
     @property
     def _normalized_columns(self):
-        return map(normalize_column_name, self.columns)
+        return list(map(normalize_column_name, self.columns))
 
     @property
     def columns(self):
@@ -159,7 +161,7 @@ class Table(object):
             table.drop_column('created_at')
         """
         self._check_dropped()
-        if name in self.table.columns.keys():
+        if name in list(self.table.columns.keys()):
             self.op.drop_column(
                 self.table.name,
                 name,
