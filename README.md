@@ -1,26 +1,28 @@
-[![Build Status](https://travis-ci.org/smnorris/pgdb.svg?branch=master)](https://travis-ci.org/smnorris/pgdb)
-[![Coverage Status](https://coveralls.io/repos/github/smnorris/pgdb/badge.svg?branch=master)](https://coveralls.io/github/smnorris/pgdb?branch=master)
-
 # pgdb
 
-An irregularly maintained collection of python functions for working with postgres, posted here for my own convenience... you probably shouldn't use this. The module wraps around psycopg2 and sqlalchemy and was taken almost verbatim from a fork of [dataset](https://dataset.readthedocs.org/)
+Python-PostgreSQL-PostGIS interface shortcuts, copied from [dataset](https://dataset.readthedocs.org/).
 
-Primary differences from dataset:
-- schema handling improved (although dataset may be better now)
-- adds some functions and types that are useful (mostly postgis related)
-- a raw psycopg2 connection is used for custom sql (`query` and `execute` functions) rather than going through sqlalchemy
-- many dataset functions I don't need are stripped (locking, freezing, etc)
+[![Build Status](https://travis-ci.org/smnorris/pgdb.svg?branch=master)](https://travis-ci.org/smnorris/pgdb) [![Coverage Status](https://coveralls.io/repos/github/smnorris/pgdb/badge.svg?branch=master)](https://coveralls.io/github/smnorris/pgdb?branch=master)
 
-https://github.com/paulchakravarti/pgwrap was also used for inspiration.
+pgdb is a collection of convenience functions for working with postgres.  The module wraps around psycopg2 and sqlalchemy. 
+
+Primary differences from dataset: 
+
+- handle cross-schema table references (ie, `myschema.table`)
+- additional types (via `GeoAlchemy2` and `SQLAlchemy-Utils`)
+- additional functions for common queries (mostly spatial)
+- many dataset functions are unsupported (autocreate, locking, freezing)
+
+[pgwrap](https://github.com/paulchakravarti/pgwrap) was also used for inspiration.
 
 ## Requirements
-- postgresql
-- postgis
-- sqlalchemy
+- PostgreSQL
+- PostGIS
+- SQLAlchemy
 - psycopg2
-- geoalchemy2
-- sqlalchemy-utils
-- alembic
+- Geoalchemy2
+- SQLAlchemy-Utils
+- Alembic
 
 ## Usage
 
