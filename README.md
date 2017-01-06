@@ -1,19 +1,12 @@
 # pgdb
 
-Python-PostgreSQL-PostGIS interface shortcuts, copied from [dataset](https://dataset.readthedocs.org/).
+Python PostgreSQL-PostGIS-psycopg2-SQLAlchemy shortcuts.
 
 [![Build Status](https://travis-ci.org/smnorris/pgdb.svg?branch=master)](https://travis-ci.org/smnorris/pgdb) [![Coverage Status](https://coveralls.io/repos/github/smnorris/pgdb/badge.svg?branch=master)](https://coveralls.io/github/smnorris/pgdb?branch=master)
 
-pgdb is a collection of convenience functions for working with postgres.  The module wraps around psycopg2 and sqlalchemy. 
+pgdb is a collection of convenience functions for working with postgres.  The module wraps around psycopg2 at the `Database` level (when executing plain SQL), and simple SQLAlchemy tools at the `Table` level.
 
-Primary differences from dataset: 
-
-- handle cross-schema table references (ie, `myschema.table`)
-- additional types (via `GeoAlchemy2` and `SQLAlchemy-Utils`)
-- additional functions for common queries (mostly spatial)
-- many dataset functions are unsupported (autocreate, locking, freezing)
-
-[pgwrap](https://github.com/paulchakravarti/pgwrap) was also used for inspiration.
+Much is copied directly from [dataset](https://dataset.readthedocs.org/) and further inspiration was taken from [pgwrap](https://github.com/paulchakravarti/pgwrap).
 
 ## Requirements
 - PostgreSQL
@@ -26,7 +19,6 @@ Primary differences from dataset:
 
 ## Usage
 
-See [dataset](https://dataset.readthedocs.org/) for most usage.
 
 ```
 >>> import pgdb

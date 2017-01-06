@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 import os
 import glob
-import csv
+
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -10,11 +10,6 @@ except ImportError:
 
 import psycopg2
 from psycopg2 import extras
-
-from sqlalchemy import create_engine
-from sqlalchemy.schema import CreateSchema, DropSchema
-from sqlalchemy.schema import MetaData
-from sqlalchemy.schema import Table as SQLATable
 
 from .util import row_type
 from .table import Table
@@ -31,9 +26,8 @@ class Database(object):
         self.host = u.hostname
         self.port = u.port
         self.sql_path = sql_path
+        self.conn = self._get_connection()
         self.schema = schema
-        self.engine = create_engine(url)
-        self.psycopg2_conn = self._get_connection()
         self.row_type = row_type
         self.queries = self.load_queries(sql_path)
 
@@ -65,7 +59,6 @@ class Database(object):
                 tables = tables +  \
                           [schema+"."+t for t in self.tables_in_schema(schema)]
             return tables
-        #return self.insp.get_table_names(schema=self.schema)
 
     def _get_connection(self):
         c = psycopg2.connect(database=self.database,
@@ -89,17 +82,18 @@ class Database(object):
             return Table(self, "public", None)
 
     def _get_cursor(self):
-        return self.psycopg2_conn.cursor()
-        #return self.engine.cursor()
+        return self.conn.cursor()
 
     def _valid_table_name(self, table):
-        """ Check if the table name is obviously invalid. """
+        """Check if the table name is obviously invalid.
+        """
         if table is None or not len(table.strip()):
             raise ValueError("Invalid table name: %r" % table)
         return table.strip()
 
     def load_queries(self, path):
-        """ load stored queries from specified path and return a dict"""
+        """Load stored queries from specified path and return a dict
+        """
         if os.path.exists(path):
             sqlfiles = glob.glob(os.path.join(path, "*.sql"))
             queries = {}
@@ -165,14 +159,12 @@ class Database(object):
         Execute something against the database where nothing is expected to be
         returned.
         """
-        #return self.engine.execute(sql, params)
         return self._get_cursor().execute(sql, params)
 
     def execute_many(self, sql, params):
-        """wrapper for executemany.
+        """Wrapper for executemany.
         """
         self._get_cursor().executemany(sql, params)
-        #self.engine.executemany(sql, params)
 
     def query(self, sql, params=None):
         """
@@ -183,8 +175,6 @@ class Database(object):
         cur = self._get_cursor()
         cur.execute(sql, params)
         return cur.fetchall()
-        #r = self.engine.execute(sql, params)
-        #return r.fetchall()
 
     def query_one(self, sql, params=None):
         """Grab just one record
@@ -192,20 +182,22 @@ class Database(object):
         cur = self._get_cursor()
         cur.execute(sql, params)
         return cur.fetchone()
-        #r = self.engine.execute(sql, params)
-        #return r.fetchone()
 
     def create_schema(self, schema):
         """Create specified schema if it does not already exist
         """
         if schema not in self.schemas:
-            self.engine.execute(CreateSchema(schema))
+            sql = "CREATE SCHEMA "+schema
+            self.execute(sql)
 
     def drop_schema(self, schema, cascade=False):
         """Drop specified schema
         """
         if schema in self.schemas:
-            self.engine.execute(DropSchema(schema, cascade=cascade))
+            sql = "DROP SCHEMA "+schema
+            if cascade:
+                sql = sql + " CASCADE"
+            self.execute(sql)
 
     def wipe_schema(self):
         """Delete all tables from current schema. Use with caution eh?
@@ -224,17 +216,3 @@ class Database(object):
             return Table(self, schema, table)
         else:
             return Table(self, schema, table, columns)
-
-    def to_csv(self, sql, out_file, params=None):
-        # this could likely be replaced with this:
-        # http://initd.org/psycopg/docs/cursor.html#cursor.copy_expert
-        cur = self._get_cursor()
-        cur.execute(sql, params)
-        colnames = [desc[0] for desc in cur.description]
-        data = cur.fetchall()
-        with open(out_file, "wb") as csvfile:
-            writer = csv.writer(csvfile)
-            # write header
-            writer.writerow(colnames)
-            for row in data:
-                writer.writerow(row)

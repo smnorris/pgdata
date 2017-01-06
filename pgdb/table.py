@@ -5,6 +5,7 @@ from hashlib import sha1
 import logging
 from itertools import count
 
+from sqlalchemy import create_engine
 from sqlalchemy.schema import Table as SQLATable
 from sqlalchemy.schema import MetaData
 from sqlalchemy.schema import Column, Index
@@ -29,12 +30,12 @@ log = logging.getLogger(__name__)
 class Table(object):
 
     def __init__(self, db, schema, table, columns=None):
-        self.database = db
-        self.db = db          # just a shortcut
+        self.db = db
         self.schema = schema
         self.name = table
+        self.engine = create_engine(db.url)
         self.metadata = MetaData(schema=schema)
-        self.metadata.bind = self.db.engine
+        self.metadata.bind = self.engine
         # http://docs.sqlalchemy.org/en/rel_1_0/core/metadata.html
         # if provided columns (SQLAlchemy columns), create the table
         if table:
@@ -89,7 +90,7 @@ class Table(object):
 
     @property
     def op(self):
-        ctx = MigrationContext.configure(self.db.engine)
+        ctx = MigrationContext.configure(self.engine)
         return Operations(ctx)
 
     def _valid_table_name(self, table_name):
@@ -100,7 +101,7 @@ class Table(object):
 
     def _update_table(self, table_name):
         self.metadata = MetaData(schema=self.schema)
-        self.metadata.bind = self.db.engine
+        self.metadata.bind = self.engine
         return SQLATable(table_name, self.metadata, schema=self.schema)
 
     def add_primary_key(self, column="id"):
@@ -120,7 +121,7 @@ class Table(object):
         Drop the table from the database
         """
         if self._is_dropped is False:
-            self.table.drop(self.db.engine)
+            self.table.drop(self.engine)
         self._is_dropped = True
 
     def _check_dropped(self):
@@ -189,12 +190,12 @@ class Table(object):
             name = 'ix_%s_%s' % (self.table.name, key)
         if name in self.indexes:
             return self.indexes[name]
-        #self.database._acquire()
+        #self.db._acquire()
         columns = [self.table.c[col] for col in columns]
         idx = Index(name, *columns, postgresql_using=index_type)
-        idx.create(self.database.engine)
+        idx.create(self.engine)
         #finally:
-        #    self.database._release()
+        #    self.db._release()
         self.indexes[name] = idx
         return idx
 
@@ -231,10 +232,10 @@ class Table(object):
                               order_by=[c.asc() for c in columns])
         # if just looking at one column, return a simple list
         if len(columns) == 1:
-            return itertools.chain.from_iterable(self.db.engine.execute(q))
+            return itertools.chain.from_iterable(self.engine.execute(q))
         # otherwise return specified row_type
         else:
-            return ResultIter(self.db.engine.execute(q),
+            return ResultIter(self.engine.execute(q),
                               row_type=self.db.row_type)
 
     def insert(self, row):
@@ -247,7 +248,7 @@ class Table(object):
         Returns the inserted row's primary key.
         """
         self._check_dropped()
-        res = self.database.engine.execute(self.table.insert(row))
+        res = self.engine.execute(self.table.insert(row))
         if len(res.inserted_primary_key) > 0:
             return res.inserted_primary_key[0]
 
@@ -278,7 +279,7 @@ class Table(object):
     def rename(self, name):
         sql = """ALTER TABLE {s}.{t} RENAME TO {name}
               """.format(s=self.schema, t=self.name, name=name)
-        self.database.engine.execute(sql)
+        self.engine.execute(sql)
         self.table = SQLATable(name, self.metadata, schema=self.schema,
                                autoload=True)
 
@@ -333,7 +334,7 @@ class Table(object):
         # query total number of rows first
         count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset),
                             name='count_query_alias').count()
-        rp = self.db.engine.execute(count_query)
+        rp = self.engine.execute(count_query)
         total_row_count = rp.fetchone()[0]
         if return_count:
             return total_row_count
@@ -357,8 +358,8 @@ class Table(object):
                 break
             queries.append(self.table.select(whereclause=args, limit=qlimit,
                                              offset=qoffset, order_by=order_by))
-        return ResultIter((self.db.engine.execute(q) for q in queries),
-                          row_type=self.database.row_type)
+        return ResultIter((self.engine.execute(q) for q in queries),
+                          row_type=self.db.row_type)
 
     def count(self, **_filter):
         """
