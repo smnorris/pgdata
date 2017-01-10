@@ -2,6 +2,7 @@ from pgdb import connect
 from sqlalchemy.schema import Column
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
 from geoalchemy2 import Geometry
+import multiprocessing
 
 URL = "postgresql://postgres:postgres@localhost:5432/pgdb"
 DB1 = connect(URL, schema="pgdb")
@@ -93,9 +94,28 @@ def test_build_query():
 def test_query_params():
     db = DB2
     sql = "SELECT user_name FROM pgdb.employees WHERE user_id = %s"
-    r = db.query(sql, (1,))
+    r = db.query(sql, (1,)).fetchall()
     assert r[0][0] == 'Fred'
     assert r[0]["user_name"] == 'Fred'
+
+
+def test_query_keys():
+    db = DB2
+    sql = "SELECT user_name FROM pgdb.employees WHERE user_id = %s"
+    assert db.engine.execute(sql, (1,)).keys() == ['user_name']
+
+
+def parallel_query(id):
+    sql = "SELECT user_name FROM pgdb.employees WHERE user_id = %s"
+    db = DB2
+    db.engine.execute(sql, (id,))
+
+
+def test_parallel():
+    pool = multiprocessing.Pool(processes=2)
+    pool.map(parallel_query, range(1, 10))
+    pool.close()
+    pool.join()
 
 
 def test_null_table():
@@ -107,3 +127,5 @@ def test_null_table():
 def test_wipe_schema():
     db = DB1
     db.wipe_schema()
+
+

@@ -8,8 +8,11 @@ try:
 except ImportError:
      from urlparse import urlparse
 
-import psycopg2
-from psycopg2 import extras
+from sqlalchemy import create_engine
+#import psycopg2
+#from psycopg2 import extras
+
+from sqlalchemy.pool import NullPool
 
 from .util import row_type
 from .table import Table
@@ -26,7 +29,10 @@ class Database(object):
         self.host = u.hostname
         self.port = u.port
         self.sql_path = sql_path
-        self.conn = self._get_connection()
+        # use null pool to ensure the db object can be used by multiprocessing
+        # http://docs.sqlalchemy.org/en/latest/faq/connections.html#how-do-i-use-engines-connections-sessions-with-python-multiprocessing-or-os-fork
+        self.engine = create_engine(url, poolclass=NullPool)
+        #self.conn = self._get_connection()
         self.schema = schema
         self.row_type = row_type
         self.queries = self.load_queries(sql_path)
@@ -39,7 +45,7 @@ class Database(object):
         """
         sql = """SELECT schema_name FROM information_schema.schemata
                  ORDER BY schema_name"""
-        schemas = self.query(sql)
+        schemas = self.query(sql).fetchall()
         return [s[0] for s in schemas if s[0][:3] != 'pg_']
 
     @property
@@ -60,6 +66,7 @@ class Database(object):
                           [schema+"."+t for t in self.tables_in_schema(schema)]
             return tables
 
+    """
     def _get_connection(self):
         c = psycopg2.connect(database=self.database,
                              user=self.user,
@@ -69,6 +76,7 @@ class Database(object):
                              cursor_factory=extras.DictCursor)
         c.autocommit = True
         return c
+    """
 
     def print_notices(self):
         for notice in self.psycopg2_conn.notices:
@@ -81,8 +89,8 @@ class Database(object):
         else:
             return Table(self, "public", None)
 
-    def _get_cursor(self):
-        return self.conn.cursor()
+    #def _get_cursor(self):
+    #    return self.conn.cursor()
 
     def _valid_table_name(self, table):
         """Check if the table name is obviously invalid.
@@ -128,7 +136,7 @@ class Database(object):
         sql = """SELECT table_name
                  FROM information_schema.tables
                  WHERE table_schema = %s"""
-        return [t[0] for t in self.query(sql, (schema,))]
+        return [t[0] for t in self.query(sql, (schema,)).fetchall()]
 
     def parse_table_name(self, table):
         """parse schema qualified table name
@@ -159,29 +167,31 @@ class Database(object):
         Execute something against the database where nothing is expected to be
         returned.
         """
-        return self._get_cursor().execute(sql, params)
+        #return self._get_cursor().execute(sql, params)
+        return self.engine.execute(sql, params)
 
     def execute_many(self, sql, params):
         """Wrapper for executemany.
         """
-        self._get_cursor().executemany(sql, params)
+        #self._get_cursor().executemany(sql, params)
+        self.engine.executemany(sql, params)
 
     def query(self, sql, params=None):
+        """Get all results of a query
         """
-        Run a statement on the database directly, allowing for the
-        execution of arbitrary read/write queries.
-        Non-lazy - all results are fetched.
-        """
-        cur = self._get_cursor()
-        cur.execute(sql, params)
-        return cur.fetchall()
+        #cur = self._get_cursor()
+        #cur.execute(sql, params)
+        #return cur.fetchall()
+        return self.engine.execute(sql, params)
 
     def query_one(self, sql, params=None):
         """Grab just one record
         """
-        cur = self._get_cursor()
-        cur.execute(sql, params)
-        return cur.fetchone()
+        #cur = self._get_cursor()
+        #cur.execute(sql, params)
+        #return cur.fetchone()
+        r = self.engine.execute(sql, params)
+        return r.fetchone()
 
     def create_schema(self, schema):
         """Create specified schema if it does not already exist
