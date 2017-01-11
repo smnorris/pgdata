@@ -91,7 +91,7 @@ def test_build_query():
     assert new_sql == "SELECT user_name FROM pgdb.employees WHERE user_id = 1"
 
 
-def test_query_params():
+def test_query_params_1():
     db = DB2
     sql = "SELECT user_name FROM pgdb.employees WHERE user_id = %s"
     r = db.query(sql, (1,)).fetchall()

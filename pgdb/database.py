@@ -164,8 +164,7 @@ class Database(object):
 
     def execute(self, sql, params=None):
         """
-        Execute something against the database where nothing is expected to be
-        returned.
+        Just a pointer to engine.execute
         """
         #return self._get_cursor().execute(sql, params)
         return self.engine.execute(sql, params)
@@ -177,7 +176,7 @@ class Database(object):
         self.engine.executemany(sql, params)
 
     def query(self, sql, params=None):
-        """Get all results of a query
+        """Another word for execute
         """
         #cur = self._get_cursor()
         #cur.execute(sql, params)
