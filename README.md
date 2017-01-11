@@ -1,22 +1,18 @@
 # pgdb
 
-Python PostgreSQL-PostGIS-psycopg2-SQLAlchemy shortcuts.
+Python PostgreSQL-PostGIS-SQLAlchemy shortcuts.
 
 [![Build Status](https://travis-ci.org/smnorris/pgdb.svg?branch=master)](https://travis-ci.org/smnorris/pgdb) [![Coverage Status](https://coveralls.io/repos/github/smnorris/pgdb/badge.svg?branch=master)](https://coveralls.io/github/smnorris/pgdb?branch=master)
 
-pgdb is a collection of convenience functions for working with postgres.
+pgdb is a collection of convenience functions for working with PostgreSQL.
 
 Much is copied directly from [dataset](https://dataset.readthedocs.org/) and further inspiration was taken from [pgwrap](https://github.com/paulchakravarti/pgwrap).
 
 ## Requirements
 - PostgreSQL
 - PostGIS
-- SQLAlchemy
-- psycopg2
-- Geoalchemy2
-- SQLAlchemy-Utils
-- Alembic
 - GDAL (optional, for `pg2ogr` and `ogr2pg`)
+- ESRI File Geodatabase API (optional, for using `pg2ogr` with `FileGDB` option)
 
 ## Usage
 
