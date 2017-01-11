@@ -5,6 +5,10 @@ python:
 install:
   - "pip install coveralls"
   - "pip install -e .[test]"
+addons:
+  apt:
+    packages:
+    - gdal-bin
 services:
   - postgresql
 before_script:
