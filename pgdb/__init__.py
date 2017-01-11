@@ -4,7 +4,7 @@ import os
 from pgdb.database import Database
 from pgdb.table import Table
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 
 def connect(url=None, schema=None, sql_path='sql'):

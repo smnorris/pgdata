@@ -3,6 +3,11 @@ Changes
 
 All issue numbers are relative to https://github.com/smnorris/pgdb/issues.
 
+0.0.3 (2017-01-10)
+------------------
+- use only SQLAlchemy engine for connections
+- add `ogr2pg` and `pg2ogr` ogr2ogr shortcuts
+
 0.0.2 (2016-12-12)
 ------------------
 - support Python 3 (#2)
