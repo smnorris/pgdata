@@ -21,6 +21,9 @@ services:
   - postgresql
 before_install:
   - . ./scripts/travis_gdal_install.sh
+  - export PATH=$GDALINST/gdal-$GDALVERSION/bin:$PATH
+  - export LD_LIBRARY_PATH=$GDALINST/gdal-$GDALVERSION/lib:$LD_LIBRARY_PATH
+  - gdal-config --version
 before_script:
   - psql -c 'create database pgdb;' -U postgres
 script:
