@@ -3,5 +3,6 @@ global-exclude *.pyc
 exclude MANIFEST.in
 exclude *.txt *.py
 recursive-include tests *.py
+recursive-include tests/data *
 include CHANGES.txt LICENSE.txt VERSION.txt README.md
 include setup.py requirements.txt
