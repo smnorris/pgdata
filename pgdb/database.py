@@ -13,7 +13,6 @@ except ImportError:
 
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
-import click
 
 from .util import row_type
 from .table import Table
@@ -264,7 +263,6 @@ class Database(object):
                            (in_layer, sql))
             # remove layer name, it is ignored in combination with sql
             command.pop()
-        click.echo(command)
         subprocess.call(" ".join(command), shell=True)
 
     def pg2ogr(self, sql, driver, outfile, outlayer=None, column_remap=None,
@@ -339,5 +337,4 @@ class Database(object):
         if driver == 'GeoJSON':
             command = command.replace("""-f "GeoJSON" """,
                                       """-f "GeoJSON" -t_srs EPSG:4326""")
-        click.echo(command)
         subprocess.call(command, shell=True)
