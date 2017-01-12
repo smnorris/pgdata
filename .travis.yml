@@ -26,6 +26,7 @@ before_install:
   - gdal-config --version
 before_script:
   - psql -c 'create database pgdb;' -U postgres
+  - psql -d pgdb -c "CREATE EXTENSION postgis;" -U postgres
 script:
   - py.test
   - coverage run --source=pgdb -m py.test
