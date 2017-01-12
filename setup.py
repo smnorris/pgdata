@@ -46,7 +46,7 @@ setup(name='pgdb',
           'alembic'
       ],
       extras_require={
-          'test': ['pytest', 'fiona'],
+          'test': ['pytest'],
       },
       entry_points="""
       [console_scripts]
