@@ -2,7 +2,7 @@ import multiprocessing
 import tempfile
 import os
 
-import fiona
+#import fiona
 
 from sqlalchemy.schema import Column
 from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
