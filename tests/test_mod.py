@@ -90,7 +90,7 @@ def test_create_index():
 def test_tables_in_schema():
     db = DB2
     tables = db.tables_in_schema("pgdb")
-    assert set(tables) == set(["employees", 'bc_airports'])
+    assert set(tables) == set(["employees"])#, 'bc_airports'])
 
 
 def test_get_table_cross_schema():
