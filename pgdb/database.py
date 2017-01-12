@@ -12,10 +12,8 @@ except ImportError:
      from urlparse import urlparse
 
 from sqlalchemy import create_engine
-#import psycopg2
-#from psycopg2 import extras
-
 from sqlalchemy.pool import NullPool
+import click
 
 from .util import row_type
 from .table import Table
@@ -35,7 +33,6 @@ class Database(object):
         # use null pool to ensure the db object can be used by multiprocessing
         # http://docs.sqlalchemy.org/en/latest/faq/connections.html#how-do-i-use-engines-connections-sessions-with-python-multiprocessing-or-os-fork
         self.engine = create_engine(url, poolclass=NullPool)
-        #self.conn = self._get_connection()
         self.schema = schema
         self.row_type = row_type
         self.queries = self.load_queries(sql_path)
@@ -267,6 +264,7 @@ class Database(object):
                            (in_layer, sql))
             # remove layer name, it is ignored in combination with sql
             command.pop()
+        click.echo(command)
         subprocess.call(" ".join(command), shell=True)
 
     def pg2ogr(self, sql, driver, outfile, outlayer=None, column_remap=None,
@@ -341,4 +339,5 @@ class Database(object):
         if driver == 'GeoJSON':
             command = command.replace("""-f "GeoJSON" """,
                                       """-f "GeoJSON" -t_srs EPSG:4326""")
+        click.echo(command)
         subprocess.call(command, shell=True)

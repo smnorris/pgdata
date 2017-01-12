@@ -12,7 +12,7 @@ Much is copied directly from [dataset](https://dataset.readthedocs.org/) and fur
 - PostgreSQL
 - PostGIS
 - GDAL (optional, for `pg2ogr` and `ogr2pg`)
-- ESRI File Geodatabase API (optional, for using `pg2ogr` with `FileGDB` option)
+- [ESRI File Geodatabase API](http://appsforms.esri.com/products/download/) (optional, for using `pg2ogr` with `FileGDB` option)
 
 ## Usage
 

@@ -9,7 +9,6 @@ GDALOPTS="  --with-ogr \
             --with-libtiff=internal \
             --with-geotiff=internal \
             --without-gif \
-            --without-pg \
             --without-grass \
             --without-libgrass \
             --without-cfitsio \
