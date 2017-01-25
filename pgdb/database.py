@@ -234,7 +234,8 @@ class Database(object):
         """
         Load a layer to provided pgdb database connection using OGR2OGR
 
-        SQL provided is like the ESRI where_clause, but in SQLITE dialect:
+        -sql option is like an ESRI where_clause or the ogr2ogr -where option,
+        but to increase flexibility, it is in SQLITE dialect:
         SELECT * FROM <in_layer> WHERE <sql>
         """
         # if not provided a layer name, use the name of the input file
@@ -270,7 +271,7 @@ class Database(object):
         subprocess.call(" ".join(command), shell=True)
 
     def pg2ogr(self, sql, driver, outfile, outlayer=None, column_remap=None,
-               s_srs='EPSG:3005', geom_type=None):
+               s_srs='EPSG:3005', t_srs='EPSG:3005', geom_type=None):
         """
         A wrapper around ogr2ogr, for quickly dumping a postgis query to file.
         Suppported formats are ["ESRI Shapefile", "GeoJSON", "FileGDB"]
@@ -327,12 +328,14 @@ class Database(object):
             append = ""
         command = """ogr2ogr \
                         -s_srs {s_srs} \
+                        -t_srs {t_srs} \
                         -progress \
                         -f "{driver}" {nlt} {append} \
                         {outfile} \
                         {vrt}
                   """.format(driver=driver,
                              s_srs=s_srs,
+                             t_srs=t_srs,
                              nlt=nlt,
                              append=append,
                              outfile=outfile,
