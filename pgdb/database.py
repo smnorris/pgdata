@@ -166,7 +166,11 @@ class Database(object):
         Just a pointer to engine.execute
         """
         #return self._get_cursor().execute(sql, params)
-        return self.engine.execute(sql, params)
+        # wrap in a transaction to ensure things are committed
+        # https://github.com/smnorris/pgdb/issues/3
+        with self.engine.begin() as conn:
+            result = conn.execute(sql, params)
+        return result
 
     def execute_many(self, sql, params):
         """Wrapper for executemany.
