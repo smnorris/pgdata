@@ -179,7 +179,7 @@ class Table(object):
         """
         self._check_dropped()
         if not name:
-            sig = '||'.join(columns)
+            sig = '||'.join(columns+[index_type])
             # This is a work-around for a bug in <=0.6.1 which would create
             # indexes based on hash() rather than a proper hash.
             key = abs(hash(sig))
