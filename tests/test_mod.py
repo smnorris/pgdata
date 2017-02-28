@@ -157,6 +157,7 @@ def test_wipe_schema():
     db.wipe_schema()
 
 
+"""
 def test_n_connections():
     db = DB2
     # ensure tables don't already exist
@@ -173,4 +174,4 @@ def test_n_connections():
         db['test_'+str(i)].drop()
     r = db.query("SELECT count(*) FROM pgdb.test_n_connections").fetchone()
     assert r[0] == 200
-
+"""
