@@ -20,7 +20,8 @@ import six
 
 
 class Database(object):
-    def __init__(self, url, schema=None, row_type=row_type, sql_path='sql'):
+    def __init__(self, url, schema=None, row_type=row_type, sql_path='sql',
+                 multiprocessing=False):
         self.url = url
         u = urlparse(url)
         self.database = u.path[1:]
@@ -31,7 +32,10 @@ class Database(object):
         self.sql_path = sql_path
         # use null pool to ensure the db object can be used by multiprocessing
         # http://docs.sqlalchemy.org/en/latest/faq/connections.html#how-do-i-use-engines-connections-sessions-with-python-multiprocessing-or-os-fork
-        self.engine = create_engine(url, poolclass=NullPool)
+        if multiprocessing:
+            self.engine = create_engine(url, poolclass=NullPool)
+        else:
+            self.engine = create_engine(url)
         self.schema = schema
         self.row_type = row_type
         self.queries = self.load_queries(sql_path)

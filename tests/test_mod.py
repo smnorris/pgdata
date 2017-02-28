@@ -14,6 +14,7 @@ from pgdb import connect
 URL = "postgresql://postgres:postgres@localhost:5432/pgdb"
 DB1 = connect(URL, schema="pgdb")
 DB2 = connect(URL)
+DB3 = connect(URL, multiprocessing=True)
 
 AIRPORTS = 'tests/data/bc_airports.json'
 
@@ -134,7 +135,7 @@ def test_query_keys():
 
 def parallel_query(id):
     sql = "SELECT user_name FROM pgdb.employees WHERE user_id = %s"
-    db = DB2
+    db = DB3
     db.engine.execute(sql, (id,))
 
 

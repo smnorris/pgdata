@@ -7,7 +7,7 @@ from pgdb.table import Table
 __version__ = "0.0.3"
 
 
-def connect(url=None, schema=None, sql_path='sql'):
+def connect(url=None, schema=None, sql_path='sql', multiprocessing=False):
     """ Open a new connection to postgres via psycopg2/sqlalchemy
         db = pgdb.connect('')
     """
