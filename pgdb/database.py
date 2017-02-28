@@ -30,9 +30,10 @@ class Database(object):
         self.host = u.hostname
         self.port = u.port
         self.sql_path = sql_path
+        self.multiprocessing = multiprocessing
         # use null pool to ensure the db object can be used by multiprocessing
         # http://docs.sqlalchemy.org/en/latest/faq/connections.html#how-do-i-use-engines-connections-sessions-with-python-multiprocessing-or-os-fork
-        if multiprocessing:
+        if self.multiprocessing:
             self.engine = create_engine(url, poolclass=NullPool)
         else:
             self.engine = create_engine(url)

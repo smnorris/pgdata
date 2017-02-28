@@ -155,3 +155,22 @@ def test_null_table():
 def test_wipe_schema():
     db = DB1
     db.wipe_schema()
+
+
+def test_n_connections():
+    db = DB2
+    # ensure tables don't already exist
+    db['pgdb.test_n_connections'].drop()
+    for i in range(200):
+        db['test_'+str(i)].drop()
+
+    for i in range(200):
+        db.ogr2pg(AIRPORTS, in_layer="OGRGeoJSON", out_layer='bc_airports_'+str(i), schema='pgdb')
+        if i == 0:
+            db.execute("CREATE TABLE pgdb.test_n_connections AS SELECT * FROM pgdb.bc_airports_0 LIMIT 0")
+        sql = "INSERT INTO pgdb.test_n_connections (SELECT * FROM pgdb.bc_airports_{n} LIMIT 1)".format(n=str(i))
+        db.execute(sql)
+        db['test_'+str(i)].drop()
+    r = db.query("SELECT count(*) FROM pgdb.test_n_connections").fetchone()
+    assert r[0] == 200
+
