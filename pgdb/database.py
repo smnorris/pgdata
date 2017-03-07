@@ -235,7 +235,7 @@ class Database(object):
             return Table(self, schema, table, columns)
 
     def ogr2pg(self, in_file, in_layer=None, out_layer=None,
-               schema='public', t_srs='EPSG:3005', sql=None):
+               schema='public', t_srs='EPSG:3005', sql=None, dim=2):
         """
         Load a layer to provided pgdb database connection using OGR2OGR
 
@@ -261,7 +261,7 @@ class Database(object):
                    '-overwrite',
                    '-lco SCHEMA={schema}'.format(schema=schema),
                    '-lco GEOMETRY_NAME=geom',
-                   '-dim 2',
+                   '-dim {d}'.format(d=dim),
                    '-nln '+out_layer,
                    '-nlt PROMOTE_TO_MULTI',
                    in_file,
