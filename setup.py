@@ -50,6 +50,6 @@ setup(name='pgdb',
       },
       entry_points="""
       [console_scripts]
-      pgdb=pgdb.scripts.cli:cli
+      pgdb=pgdb.cli:cli
       """
       )

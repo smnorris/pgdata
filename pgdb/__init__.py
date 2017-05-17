@@ -13,4 +13,4 @@ def connect(url=None, schema=None, sql_path='sql', multiprocessing=False):
     """
     if url is None:
         url = os.environ.get('DATABASE_URL')
-    return Database(url, schema)
+    return Database(url, schema, multiprocessing=multiprocessing)
