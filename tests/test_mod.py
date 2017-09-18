@@ -9,6 +9,7 @@ from sqlalchemy import Integer, UnicodeText, Float, DateTime, Boolean
 from geoalchemy2 import Geometry
 
 from pgdb import connect
+from pgdb import create_db
 
 
 URL = "postgresql://postgres:postgres@localhost:5432/pgdb"
@@ -30,6 +31,12 @@ DATA = [{"user_id": 1,
          "user_name": 'Jack',
          "email_address": "jack@emails.uk",
          "password": "jackolope666"}]
+
+
+def test_create_db():
+    create_db(URL)
+    db = DB2
+    assert db.url == "postgresql://postgres:postgres@localhost:5432/pgdb"
 
 
 def test_connect():
