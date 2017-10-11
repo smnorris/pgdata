@@ -234,8 +234,8 @@ class Database(object):
         else:
             return Table(self, schema, table, columns)
 
-    def ogr2pg(self, in_file, in_layer=None, out_layer=None,
-               schema='public', t_srs='EPSG:3005', sql=None, dim=2):
+    def ogr2pg(self, in_file, in_layer=None, out_layer=None, schema='public',
+               t_srs='EPSG:3005', sql=None, dim=2, cmd_only=False):
         """
         Load a layer to provided pgdb database connection using OGR2OGR
 
@@ -266,14 +266,16 @@ class Database(object):
                    '-nlt PROMOTE_TO_MULTI',
                    in_file,
                    in_layer]
-
         if sql:
             command.insert(4,
                            '-sql "SELECT * FROM %s WHERE %s" -dialect SQLITE' %
                            (in_layer, sql))
             # remove layer name, it is ignored in combination with sql
             command.pop()
-        subprocess.call(" ".join(command), shell=True)
+        if cmd_only:
+            return " ".join(command)
+        else:
+            subprocess.call(" ".join(command), shell=True)
 
     def pg2ogr(self, sql, driver, outfile, outlayer=None, column_remap=None,
                s_srs='EPSG:3005', t_srs='EPSG:3005', geom_type=None):
