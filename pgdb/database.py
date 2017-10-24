@@ -287,7 +287,7 @@ class Database(object):
            - for FileGDB, geom_type is required
              (https://trac.osgeo.org/gdal/ticket/4186)
         """
-        filename, ext = os.path.splitext(outfile)
+        filename, ext = os.path.splitext(os.path.basename(outfile))
         if not outlayer:
             outlayer = filename
         u = urlparse(self.url)
@@ -330,14 +330,20 @@ class Database(object):
         if driver == 'FileGDB':
             nlt = "-nlt "+geom_type
             append = "-append"
+            update = ""
+        elif driver == 'GPKG' and os.path.exists(outfile):
+            nlt = ""
+            append = ""
+            update = "-update"
         else:
             nlt = ""
             append = ""
+            update = ""
         command = """ogr2ogr \
                         -s_srs {s_srs} \
                         -t_srs {t_srs} \
                         -progress \
-                        -f "{driver}" {nlt} {append} \
+                        -f "{driver}" {nlt} {append} {update}\
                         {outfile} \
                         {vrt}
                   """.format(driver=driver,
@@ -345,6 +351,7 @@ class Database(object):
                              t_srs=t_srs,
                              nlt=nlt,
                              append=append,
+                             update=update,
                              outfile=outfile,
                              vrt=vrtpath)
         # translate GeoJSON to EPSG:4326
