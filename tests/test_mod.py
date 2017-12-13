@@ -118,6 +118,12 @@ def test_insert_many():
     table.insert(DATA[1:])
 
 
+def test_distinct():
+    db = DB1
+    users = [r[0] for r in db["employees"].distinct('user_name')]
+    assert len(users) == 3
+
+
 def test_build_query():
     db = DB2
     sql = "SELECT $UserName FROM pgdb.employees WHERE $UserId = 1"
@@ -159,9 +165,9 @@ def test_null_table():
     assert db["table_that_does_not_exist"]._is_dropped is True
 
 
-def test_wipe_schema():
-    db = DB1
-    db.wipe_schema()
+#def test_wipe_schema():
+#    db = DB1
+#    db.wipe_schema()
 
 
 """

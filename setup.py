@@ -1,10 +1,11 @@
-from codecs import open as codecs_open
+import os
+
 from setuptools import setup, find_packages
 
 
-# Get the long description from the relevant file
-with codecs_open('README.md', encoding='utf-8') as f:
-    long_description = f.read()
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 # Parse the version from the pgdb module.
 with open('pgdb/__init__.py', 'r') as f:
@@ -18,7 +19,7 @@ with open('pgdb/__init__.py', 'r') as f:
 setup(name='pgdb',
       version=version,
       description=u"Postgresql shortcuts",
-      long_description=long_description,
+      long_description=read('README.md'),
       classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -38,18 +39,5 @@ setup(name='pgdb',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-      install_requires=[
-          'psycopg2',
-          'sqlalchemy',
-          'sqlalchemy-utils',
-          'geoalchemy2',
-          'alembic'
-      ],
-      extras_require={
-          'test': ['pytest'],
-      },
-      entry_points="""
-      [console_scripts]
-      pgdb=pgdb.cli:cli
-      """
+      install_requires=read('requirements.txt').splitlines()
       )

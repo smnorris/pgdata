@@ -278,7 +278,7 @@ class Database(object):
             subprocess.call(" ".join(command), shell=True)
 
     def pg2ogr(self, sql, driver, outfile, outlayer=None, column_remap=None,
-               s_srs='EPSG:3005', t_srs='EPSG:3005', geom_type=None):
+               s_srs='EPSG:3005', t_srs='EPSG:3005', geom_type=None, append=False):
         """
         A wrapper around ogr2ogr, for quickly dumping a postgis query to file.
         Suppported formats are ["ESRI Shapefile", "GeoJSON", "FileGDB"]
@@ -326,19 +326,21 @@ class Database(object):
             os.remove(vrtpath)
         with open(vrtpath, "w") as vrtfile:
             vrtfile.write(vrt)
-        # allow appending to filegdb and specify the geometry type
+        # if writing to gdb, specify geom type
         if driver == 'FileGDB':
             nlt = "-nlt "+geom_type
-            append = "-append"
-            update = ""
-        elif driver == 'GPKG' and os.path.exists(outfile):
-            nlt = ""
-            append = ""
-            update = "-update"
         else:
             nlt = ""
-            append = ""
+        # automatically update existing multilayer outputs
+        if driver in ('FileGDB', 'GPKG') and os.path.exists(outfile):
+            update = "-update"
+        else:
             update = ""
+        # if specified, append to existing output
+        if append:
+            append = "-append"
+        else:
+            append = ""
         command = """ogr2ogr \
                         -s_srs {s_srs} \
                         -t_srs {t_srs} \
