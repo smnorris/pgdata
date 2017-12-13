@@ -39,5 +39,7 @@ setup(name='pgdb',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-      install_requires=read('requirements.txt').splitlines()
+      install_requires=read('requirements.txt').splitlines(),
+      extras_require={
+        'test': ['pytest', 'fiona']},
       )
