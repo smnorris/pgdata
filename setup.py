@@ -41,5 +41,5 @@ setup(name='pgdb',
       zip_safe=False,
       install_requires=read('requirements.txt').splitlines(),
       extras_require={
-        'test': ['pytest', 'fiona']},
+        'test': ['pytest','coverage','fiona']}
       )
