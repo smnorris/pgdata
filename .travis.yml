@@ -3,19 +3,19 @@ python:
   - "2.7"
   - "3.6"
 before_install:
-  - sudo add-apt-repository ppa:ubuntugis/ppa
+  - sudo add-apt-repository ppa:ubuntugis/ppa -y
   - sudo apt-get update -q
-  - sudo apt-get install gdal-bin
 install:
   - "pip install coveralls"
   - "pip install -e .[test]"
 services:
  - postgresql
 addons:
-  postgresql: 9.6
+  postgresql: 10.1
   apt:
     packages:
-    - postgresql-9.6-postgis-2.3
+    - postgresql-10.1-postgis-2.4
+    - gdal-bin
 before_script:
  - psql -c 'create database pgdb;' -U postgres
  - psql -d pgdb -c "CREATE EXTENSION postgis;" -U postgres
