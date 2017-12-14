@@ -27,9 +27,6 @@ install:
 before_script:
  - psql -U postgres -c 'CREATE DATABASE pgdb'
  - psql -U postgres -d pgdb -c "CREATE EXTENSION postgis"
- - psql -U postgres -d pgdb -c 'CREATE SCHEMA pgdb'
- - ogr2ogr -f "PostgreSQL" PG:"user=postgres dbname=pgdb" -lco SCHEMA=pgdb ./tests/data/bc_airports.json
-
 
 script:
  - py.test

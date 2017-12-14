@@ -7,7 +7,9 @@ from pgdb import connect
 
 
 URL = "postgresql://postgres:postgres@localhost:5432/pgdb"
-DB1 = connect(URL, schema="pgdb")
+DB = connect(URL)
+DB.execute('CREATE SCHEMA IF NOT EXISTS pgdb')
+DB1 = connect(URL)
 AIRPORTS = os.path.join(os.path.dirname(__file__), 'data/bc_airports.json')
 
 
@@ -15,7 +17,7 @@ def test_ogr2pg():
     db = DB1
     db.ogr2pg(AIRPORTS, in_layer="bc_airports", out_layer='bc_airports',
               schema='pgdb')
-    airports = db['bc_airports']
+    airports = db['pgdb.bc_airports']
     assert 'physical_address' in airports.columns
     assert sum(1 for _ in airports.all()) == 425
 
