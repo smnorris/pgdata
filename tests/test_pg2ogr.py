@@ -8,7 +8,7 @@ from pgdb import connect
 
 URL = "postgresql://postgres:postgres@localhost:5432/pgdb"
 DB1 = connect(URL, schema="pgdb")
-AIRPORTS = '/Volumes/Data/Projects/python/pgdb/tests/data/bc_airports.json'
+AIRPORTS = os.path.join(os.path.dirname(__file__), 'data/bc_airports.json')
 
 
 def test_ogr2pg():
