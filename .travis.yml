@@ -1,59 +1,35 @@
 language: python
-sudo: false
-cache:
-  directories:
-    - $GDALINST
-    - ~/.cache/pip
-env:
-  global:
-    - PIP_WHEEL_DIR=$HOME/.cache/pip/wheels
-    - PIP_FIND_LINKS=file://$HOME/.cache/pip/wheels
-    - GDALINST=$HOME/gdalinstall
-    - GDALBUILD=$HOME/gdalbuild
-  matrix:
-    - GDALVERSION="1.11.5"
-    - GDALVERSION="2.2.2"
 
-addons:
-  postgresql: 9.6
-  apt:
-    packages:
-    - postgresql-9.6-postgis-2.3
-    - gdal-bin
+sudo: required
 
 python:
   - "2.7"
   - "3.6"
 
+services:
+  - postgresql
+
+addons:
+  postgresql: "9.6"
+
 before_install:
   - pip install -U pip
   - pip install wheel coveralls>=1.1 --upgrade
   - pip install setuptools==36.0.1
-  - pip install wheel
-  - . ./scripts/travis_gdal_install.sh
-  - export PATH=$GDALINST/gdal-$GDALVERSION/bin:$PATH
-  - export LD_LIBRARY_PATH=$GDALINST/gdal-$GDALVERSION/lib:$LD_LIBRARY_PATH
-  - export GDAL_DATA=$GDALINST/gdal-$GDALVERSION/share/gdal
-  - export PROJ_LIB=/usr/share/proj
-  - gdal-config --version
 
 install:
+  - sudo apt-get install gdal-bin libgdal-dev libspatialindex-c3
+  - sudo apt-get install -y postgresql-9.6-postgis-2.3
+  - sudo service postgresql restart
   - pip install -r requirements-dev.txt
-  - if [ "$GDALVERSION" = "trunk" ]; then echo "Using gdal trunk"; elif [ $(gdal-config --version) == "$GDALVERSION" ]; then echo "Using gdal $GDALVERSION"; else echo "NOT using gdal $GDALVERSION as expected; aborting"; exit 1; fi
-  - pip install --upgrade --force-reinstall --global-option=build_ext --global-option='-I$GDALINST/gdal-$GDALVERSION/include' --global-option='-L$GDALINST/gdal-$GDALVERSION/lib' --global-option='-R$GDALINST/gdal-$GDALVERSION/lib' -e .
   - pip install -e .[test]
-  - fio --version
-  - gdal-config --version
-  - fio --gdal-version
-
-services:
- - postgresql
 
 before_script:
- - psql -U postgres -c 'create database pgdb;'
- - psql -U postgres -d pgdb -c "CREATE EXTENSION postgis;"
- - psql -U postgres -d pgdb -c 'CREAT SCHEMA pgdb'
+ - psql -U postgres -c 'CREATE DATABASE pgdb'
+ - psql -U postgres -d pgdb -c "CREATE EXTENSION postgis"
+ - psql -U postgres -d pgdb -c 'CREATE SCHEMA pgdb'
  - ogr2ogr -f "PostgreSQL" PG:"user=postgres dbname=pgdb" -lco SCHEMA=pgdb ./tests/data/bc_airports.json
+
 
 script:
  - py.test
@@ -61,3 +37,6 @@ script:
 
 after_success:
  - coveralls
+
+before_cache:
+  - if [ "$GDALVERSION" = "trunk" ]; then rm -rf $GDALINST/gdal-$GDALVERSION; fi
