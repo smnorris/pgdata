@@ -52,6 +52,7 @@ services:
 before_script:
  - psql -U postgres -c 'create database pgdb;'
  - psql -U postgres -d pgdb -c "CREATE EXTENSION postgis;"
+ - ogr2ogr -f "PostgreSQL" PG:"user=postgres dbname=pgdb" -lco SCHEMA=pgdb ./tests/data/bc_airports.json
 
 script:
  - py.test
