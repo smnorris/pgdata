@@ -8,7 +8,7 @@ except ImportError:
 from pgdb.database import Database
 from pgdb.table import Table
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 
 def connect(url=None, schema=None, sql_path='sql', multiprocessing=False):
