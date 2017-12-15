@@ -25,6 +25,8 @@ install:
   - pip install -e .[test]
 
 before_script:
+ - ogr2ogr --version
+ - ogrinfo tests/data/bc_airports.json
  - psql -U postgres -c 'CREATE DATABASE pgdb'
  - psql -U postgres -d pgdb -c "CREATE EXTENSION postgis"
 
@@ -34,6 +36,3 @@ script:
 
 after_success:
  - coveralls
-
-before_cache:
-  - if [ "$GDALVERSION" = "trunk" ]; then rm -rf $GDALINST/gdal-$GDALVERSION; fi
