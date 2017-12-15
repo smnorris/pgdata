@@ -42,9 +42,9 @@ class ogrpg(unittest.TestCase):
     def test_pg2gpkg(self):
         db = DB1
         db.pg2ogr(sql='SELECT * FROM pgdb.bc_airports LIMIT 10', driver='GPKG',
-                  outfile=os.path.join(self.tempdir,'test_dump.gpkg'),
+                  outfile=os.path.join(self.tempdir, 'test_dump.gpkg'),
                   outlayer='bc_airports')
-        c = fiona.open(os.path.join(self.tempdir,'test_dump.gpkg'), 'r')
+        c = fiona.open(os.path.join(self.tempdir, 'test_dump.gpkg'), 'r')
         assert len(c) == 10
 
     def test_pg2gpkg_update(self):
