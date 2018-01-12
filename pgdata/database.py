@@ -172,7 +172,7 @@ class Database(object):
         """
         #return self._get_cursor().execute(sql, params)
         # wrap in a transaction to ensure things are committed
-        # https://github.com/smnorris/pgdb/issues/3
+        # https://github.com/smnorris/pgdata/issues/3
         with self.engine.begin() as conn:
             result = conn.execute(sql, params)
         return result
@@ -237,7 +237,7 @@ class Database(object):
     def ogr2pg(self, in_file, in_layer=None, out_layer=None, schema='public',
                t_srs='EPSG:3005', sql=None, dim=2, cmd_only=False):
         """
-        Load a layer to provided pgdb database connection using OGR2OGR
+        Load a layer to provided pgdata database connection using OGR2OGR
 
         -sql option is like an ESRI where_clause or the ogr2ogr -where option,
         but to increase flexibility, it is in SQLITE dialect:
