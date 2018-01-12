@@ -1,10 +1,10 @@
-# pgdb
+# pgdata
 
 Python PostgreSQL-PostGIS-SQLAlchemy shortcuts.
 
-[![Build Status](https://travis-ci.org/smnorris/pgdb.svg?branch=master)](https://travis-ci.org/smnorris/pgdb) [![Coverage Status](https://coveralls.io/repos/github/smnorris/pgdb/badge.svg?branch=master)](https://coveralls.io/github/smnorris/pgdb?branch=master)
+[![Build Status](https://travis-ci.org/smnorris/pgdata.svg?branch=master)](https://travis-ci.org/smnorris/pgdata) [![Coverage Status](https://coveralls.io/repos/github/smnorris/pgdata/badge.svg?branch=master)](https://coveralls.io/github/smnorris/pgdata?branch=master)
 
-pgdb is a collection of convenience functions for working with PostgreSQL.
+pgdata is a collection of convenience functions for working with PostgreSQL.
 
 Much is copied directly from [dataset](https://dataset.readthedocs.org/) and further inspiration was taken from [pgwrap](https://github.com/paulchakravarti/pgwrap).
 
@@ -18,8 +18,8 @@ Much is copied directly from [dataset](https://dataset.readthedocs.org/) and fur
 
 
 ```
->>> import pgdb
->>> db = pgdb.connect(schema='myschema')
+>>> import pgdata
+>>> db = pgdata.connect(schema='myschema')
 >>> db.tables
 ['inventory']
 >>> db["inventory"].columns

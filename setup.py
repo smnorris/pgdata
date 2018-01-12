@@ -7,8 +7,8 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-# Parse the version from the pgdb module.
-with open('pgdb/__init__.py', 'r') as f:
+# Parse the version from the pgdata module.
+with open('pgdata/__init__.py', 'r') as f:
     for line in f:
         if line.find("__version__") >= 0:
             version = line.split("=")[1].strip()
@@ -16,7 +16,7 @@ with open('pgdb/__init__.py', 'r') as f:
             version = version.strip("'")
             break
 
-setup(name='pgdb',
+setup(name='pgdata',
       version=version,
       description=u"Postgresql shortcuts",
       long_description=read('README.md'),
@@ -34,7 +34,7 @@ setup(name='pgdb',
       keywords='',
       author=u"Simon Norris",
       author_email='snorris@hillcrestgeo.ca',
-      url='https://github.com/smnorris/pgdb',
+      url='https://github.com/smnorris/pgdata',
       license='MIT',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,

@@ -52,12 +52,12 @@ services:
 
 before_script:
  - psql --version
- - psql -U postgres -c 'create database pgdb;'
- - psql -U postgres -d pgdb -c "CREATE EXTENSION postgis;"
+ - psql -U postgres -c 'create database pgdata;'
+ - psql -U postgres -d pgdata -c "CREATE EXTENSION postgis;"
 
 script:
  - py.test
- - coverage run --source=pgdb -m py.test
+ - coverage run --source=pgdata -m py.test
 
 after_success:
  - coveralls

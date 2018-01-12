@@ -5,15 +5,15 @@ try:
 except ImportError:
      from urlparse import urlparse
 
-from pgdb.database import Database
-from pgdb.table import Table
+from pgdata.database import Database
+from pgdata.table import Table
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 
 def connect(url=None, schema=None, sql_path='sql', multiprocessing=False):
     """ Open a new connection to postgres via psycopg2/sqlalchemy
-        db = pgdb.connect('')
+        db = pgdata.connect('')
     """
     if url is None:
         url = os.environ.get('DATABASE_URL')
@@ -37,4 +37,21 @@ def create_db(url=None):
         conn = db.engine.connect()
         conn.execute("commit")
         conn.execute("CREATE DATABASE "+db_name)
+        conn.close()
+
+
+def drop_db(url=None):
+    if url is None:
+        url = os.environ.get('DATABASE_URL')
+    parsed_url = urlparse(url)
+    db_name = parsed_url.path
+    db_name = db_name.strip('/')
+    db = connect("postgresql://"+parsed_url.netloc)
+    # check that db exists
+    q = """SELECT 1 as exists
+           FROM pg_database
+           WHERE datname = '{db_name}'""".format(db_name=db_name)
+    if db.query(q).fetchone():
+        conn = db.engine.connect()
+        conn.execute("DROP DATABASE "+db_name)
         conn.close()

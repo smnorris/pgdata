@@ -19,9 +19,9 @@ from alembic.operations import Operations
 from geoalchemy2 import Geometry
 from sqlalchemy_utils import LtreeType
 
-from pgdb.util import DatasetException
-from pgdb.util import normalize_column_name
-from pgdb.util import ResultIter
+from pgdata.util import DatasetException
+from pgdata.util import normalize_column_name
+from pgdata.util import ResultIter
 from six.moves import map
 
 log = logging.getLogger(__name__)
