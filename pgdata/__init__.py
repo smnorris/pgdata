@@ -53,6 +53,8 @@ def drop_db(url):
            FROM pg_database
            WHERE datname = '{db_name}'""".format(db_name=db_name)
     if db.query(q).fetchone():
+        # DROP DATABASE must be run outside of a transaction
         conn = db.engine.connect()
+        conn.execute("commit")
         conn.execute("DROP DATABASE "+db_name)
         conn.close()
