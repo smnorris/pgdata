@@ -9,13 +9,20 @@ pgdata is a collection of convenience functions for working with PostgreSQL.
 Much is copied directly from [dataset](https://dataset.readthedocs.org/) and further inspiration was taken from [pgwrap](https://github.com/paulchakravarti/pgwrap).
 
 ## Requirements
+
 - PostgreSQL
 - PostGIS
 - GDAL (optional, for `pg2ogr` and `ogr2pg`)
 - [ESRI File Geodatabase API](http://appsforms.esri.com/products/download/) (optional, for using `pg2ogr` with `FileGDB` option)
 
-## Usage
+## Installation
 
+```
+pip install pgdata
+```
+
+
+## Usage
 
 ```
 >>> import pgdata
