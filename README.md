@@ -4,7 +4,28 @@ Python PostgreSQL-PostGIS-SQLAlchemy shortcuts.
 
 [![Build Status](https://travis-ci.org/smnorris/pgdata.svg?branch=master)](https://travis-ci.org/smnorris/pgdata) [![Coverage Status](https://coveralls.io/repos/github/smnorris/pgdata/badge.svg?branch=master)](https://coveralls.io/github/smnorris/pgdata?branch=master)
 
-pgdata is a collection of convenience functions for working with PostgreSQL.
+pgdata is a collection of convenience functions for working with PostgreSQL:
+
+- provides an dictionary/JSON-like shortcut interface to database objects without dealing directly with an ORM or cursor (see [dataset](https://dataset.readthedocs.io/en/latest/))
+
+        >>> import pgdata
+        >>> db = pgdata.connect()
+        >>> db.tables
+        ['inventory']
+        >>> db["inventory"].columns
+        ['type', 'supplier', 'cost']
+
+- provides a shortcut to `ogr2ogr` for quickly getting geographic data in and out of your database with sensible defaults and without resorting to shell scripting
+        
+
+        >>> import pgdata
+        >>> db = pgdata.connect()
+        >>> db.ogr2pg('airports.shp', 
+                      out_layer='airports_a',
+                      schema='airport_project')
+        >>> db.execute('do stuff')
+        >>> db.pg2ogr('SELECT * FROM airports_project.result','GPKG', 'output.gpkg')
+
 
 Much is copied directly from [dataset](https://dataset.readthedocs.org/) and further inspiration was taken from [pgwrap](https://github.com/paulchakravarti/pgwrap).
 
