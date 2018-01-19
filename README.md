@@ -21,6 +21,18 @@ Much is copied directly from [dataset](https://dataset.readthedocs.org/) and fur
 pip install pgdata
 ```
 
+## Configuration
+
+Create an environment variable `DATABASE_URL` and set it to the [SQLAlchemy db url](http://docs.sqlalchemy.org/en/latest/core/engines.html) for your database:
+
+MacOS/Linux etc: 
+
+`export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mydb`
+
+Windows: 
+
+`SET DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mydb"`
+
 
 ## Usage
 
