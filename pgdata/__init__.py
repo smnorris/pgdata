@@ -41,11 +41,9 @@ def create_db(url=None):
         conn.close()
 
 
-def drop_db(url=None):
+def drop_db(url):
     """Drop specified database
     """
-    if url is None:
-        url = os.environ.get('DATABASE_URL')
     parsed_url = urlparse(url)
     db_name = parsed_url.path
     db_name = db_name.strip('/')
