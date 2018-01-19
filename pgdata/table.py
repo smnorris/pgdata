@@ -86,7 +86,7 @@ class Table(object):
 
     @property
     def op(self):
-        ctx = MigrationContext.configure(self.engine)
+        ctx = MigrationContext.configure(self.engine.connect())
         return Operations(ctx)
 
     def _valid_table_name(self, table_name):
