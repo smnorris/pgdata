@@ -12,8 +12,7 @@ __version__ = "0.0.5"
 
 
 def connect(url=None, schema=None, sql_path='sql', multiprocessing=False):
-    """ Open a new connection to postgres via psycopg2/sqlalchemy
-        db = pgdata.connect('')
+    """Open a new connection to postgres via psycopg2/sqlalchemy
     """
     if url is None:
         url = os.environ.get('DATABASE_URL')
@@ -21,6 +20,8 @@ def connect(url=None, schema=None, sql_path='sql', multiprocessing=False):
 
 
 def create_db(url=None):
+    """Create a new database
+    """
     if url is None:
         url = os.environ.get('DATABASE_URL')
     parsed_url = urlparse(url)
@@ -41,6 +42,8 @@ def create_db(url=None):
 
 
 def drop_db(url=None):
+    """Drop specified database
+    """
     if url is None:
         url = os.environ.get('DATABASE_URL')
     parsed_url = urlparse(url)

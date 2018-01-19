@@ -32,9 +32,10 @@ def convert_row(row_type, row):
 
 
 class ResultIter(object):
-    """ SQLAlchemy ResultProxies are not iterable to get a
-    list of dictionaries. This is to wrap them. """
-
+    """
+    SQLAlchemy ResultProxies are not iterable to get a list of dictionaries.
+    This is to wrap them.
+    """
     def __init__(self, result_proxies, row_type=row_type):
         self.row_type = row_type
         if not isgenerator(result_proxies):
@@ -65,4 +66,3 @@ class ResultIter(object):
 
     def __iter__(self):
         return self
-

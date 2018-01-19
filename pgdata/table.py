@@ -59,22 +59,19 @@ class Table(object):
 
     @property
     def columns(self):
-        """
-        Return list of all columns in table
+        """Return list of all columns in table
         """
         return list(self.table.columns.keys())
 
     @property
     def sqla_columns(self):
-        """
-        Return all columns in table as sqlalchemy column types
+        """Return all columns in table as sqlalchemy column types
         """
         return self.table.columns
 
     @property
     def column_types(self):
-        """
-        Return a dict mapping column name to type for all columns in table
+        """Return a dict mapping column name to type for all columns in table
         """
         column_types = {}
         for c in self.sqla_columns:
@@ -83,8 +80,7 @@ class Table(object):
 
     @property
     def primary_key(self):
-        """
-        return a list of columns making up the primary key constraint
+        """Return a list of columns making up the primary key constraint
         """
         return [c.name for c in self.table.primary_key]
 
@@ -94,7 +90,8 @@ class Table(object):
         return Operations(ctx)
 
     def _valid_table_name(self, table_name):
-        """ Check if the table name is obviously invalid. """
+        """Check if the table name is obviously invalid.
+        """
         if table_name is None or not len(table_name.strip()):
             raise ValueError("Invalid table name: %r" % table_name)
         return table_name.strip()
@@ -105,8 +102,7 @@ class Table(object):
         return SQLATable(table_name, self.metadata, schema=self.schema)
 
     def add_primary_key(self, column="id"):
-        """
-        add primary key constraint to specified column
+        """Add primary key constraint to specified column
         """
         if not self.primary_key:
             sql = """ALTER TABLE {s}.{t}
@@ -117,8 +113,7 @@ class Table(object):
             self.db.execute(sql)
 
     def drop(self):
-        """
-        Drop the table from the database
+        """Drop the table from the database
         """
         if self._is_dropped is False:
             self.table.drop(self.engine)
@@ -200,8 +195,7 @@ class Table(object):
         return idx
 
     def create_index_geom(self, column="geom"):
-        """
-        shortcut to create index on geometry
+        """Shortcut to create index on geometry
         """
         self.create_index([column], index_type="gist")
 
@@ -277,6 +271,8 @@ class Table(object):
             _process_chunk(chunk)
 
     def rename(self, name):
+        """Rename the table
+        """
         sql = """ALTER TABLE {s}.{t} RENAME TO {name}
               """.format(s=self.schema, t=self.name, name=name)
         self.engine.execute(sql)
@@ -363,18 +359,14 @@ class Table(object):
 
     def count(self, **_filter):
         """
-        Return the count of results for the given filter set (same filter options as with ``find()``).
+        Return the count of results for the given filter set
+        (same filter options as with ``find()``).
         """
         return self.find(return_count=True, **_filter)
 
-    #def __len__(self):
-    #    """
-    #    Returns the number of rows in the table.
-    #    """
-    #    return self.count()
-
     def __getitem__(self, item):
-        """ This is an alias for distinct which allows the table to be queried as using
+        """
+        This is an alias for distinct which allows the table to be queried as using
         square bracket syntax.
         ::
             # Same as distinct:

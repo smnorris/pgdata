@@ -70,18 +70,6 @@ class Database(object):
                           [schema+"."+t for t in self.tables_in_schema(schema)]
             return tables
 
-    """
-    def _get_connection(self):
-        c = psycopg2.connect(database=self.database,
-                             user=self.user,
-                             password=self.password,
-                             host=self.host,
-                             port=self.port,
-                             cursor_factory=extras.DictCursor)
-        c.autocommit = True
-        return c
-    """
-
     def print_notices(self):
         for notice in self.psycopg2_conn.notices:
             print(notice)
@@ -92,9 +80,6 @@ class Database(object):
         # if table doesn't exist, return empty table object
         else:
             return Table(self, "public", None)
-
-    #def _get_cursor(self):
-    #    return self.conn.cursor()
 
     def _valid_table_name(self, table):
         """Check if the table name is obviously invalid.
@@ -143,7 +128,7 @@ class Database(object):
         return [t[0] for t in self.query(sql, (schema,)).fetchall()]
 
     def parse_table_name(self, table):
-        """parse schema qualified table name
+        """Parse schema qualified table name
         """
         if "." in table:
             schema, table = table.split('.')
@@ -167,10 +152,8 @@ class Database(object):
             return None
 
     def execute(self, sql, params=None):
+        """Just a pointer to engine.execute
         """
-        Just a pointer to engine.execute
-        """
-        #return self._get_cursor().execute(sql, params)
         # wrap in a transaction to ensure things are committed
         # https://github.com/smnorris/pgdata/issues/3
         with self.engine.begin() as conn:
@@ -180,23 +163,16 @@ class Database(object):
     def execute_many(self, sql, params):
         """Wrapper for executemany.
         """
-        #self._get_cursor().executemany(sql, params)
         self.engine.executemany(sql, params)
 
     def query(self, sql, params=None):
         """Another word for execute
         """
-        #cur = self._get_cursor()
-        #cur.execute(sql, params)
-        #return cur.fetchall()
         return self.engine.execute(sql, params)
 
     def query_one(self, sql, params=None):
         """Grab just one record
         """
-        #cur = self._get_cursor()
-        #cur.execute(sql, params)
-        #return cur.fetchone()
         r = self.engine.execute(sql, params)
         return r.fetchone()
 
