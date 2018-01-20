@@ -119,3 +119,23 @@ sql = """SELECT COUNT(*)
 print(db.query(sql).fetchone()[0])
 
 ```
+
+## bc2pg
+
+The module includes `bc2pg`, a command line tool that operates as a shortcut for the `bcdata` operations above:
+
+```
+$ bc2pg --help
+Usage: bc2pg [OPTIONS] DATASET
+
+  Mirror a DataBC Catalogue dataset in postgres
+
+Options:
+  --email TEXT   Email address. Default: $BCDATA_EMAIL
+  --db_url TEXT  Target database Default: $DATABASE_URL
+  --help         Show this message and exit.
+```
+
+To download bc-airports and load to postgres table `whse_imagery_and_base_maps.gsr_airports_svw`:
+
+`$ bc2pg bc-airports`

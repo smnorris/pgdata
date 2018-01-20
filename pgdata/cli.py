@@ -16,11 +16,11 @@ def validate_email(ctx, param, value):
               help="Email address. Default: $BCDATA_EMAIL",
               envvar='BCDATA_EMAIL',
               callback=validate_email)
-@click.option('--db_url', '-db', help='Database to load files to',
-              envvar='FWA_DB')
+@click.option('--db_url',
+              help='Target database Default: $DATABASE_URL',
+              envvar='DATABASE_URL')
 def cli(dataset, email, db_url):
-    """
-    Call bcdata2pg function from command line
+    """Mirror a DataBC Catalogue dataset in postgres
     """
     db = pgdata.connect(db_url)
     db.bcdata2pg(dataset, email)

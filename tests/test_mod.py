@@ -52,7 +52,7 @@ def test_create_schema():
 
 def test_list_schema():
     db = connect(URL, schema="pgdata")
-    assert db.schemas == ["information_schema", "pgdata", "public"]
+    assert set(["information_schema", "pgdata", "public"]) <= set(db.schemas)
 
 
 def test_create_table():
