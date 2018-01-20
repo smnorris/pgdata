@@ -23,7 +23,8 @@ def cli(dataset, email, db_url):
     """Mirror a DataBC Catalogue dataset in postgres
     """
     db = pgdata.connect(db_url)
-    db.bcdata2pg(dataset, email)
+    info = db.bcdata2pg(dataset, email)
+    click.echo(info['schema']+'.'+info['name'] + ' loaded')
 
 
 if __name__ == '__main__':

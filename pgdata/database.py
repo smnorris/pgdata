@@ -372,3 +372,9 @@ class Database(object):
                     schema=schema,
                     sql=sql,
                     dim=dim)
+
+        # check that all went well
+        if schema+'.'+table in self.tables:
+            return info
+        else:
+            raise IOError(schema+'.'+table+' was not loaded')
