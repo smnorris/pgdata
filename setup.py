@@ -31,7 +31,7 @@ setup(name='pgdata',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6'
       ],
-      keywords='',
+      keywords='postgresql postgis shortcuts data BC ogr2ogr gdal gis',
       author=u"Simon Norris",
       author_email='snorris@hillcrestgeo.ca',
       url='https://github.com/smnorris/pgdata',
@@ -41,5 +41,8 @@ setup(name='pgdata',
       zip_safe=False,
       install_requires=read('requirements.txt').splitlines(),
       extras_require={
-        'test': ['pytest','coverage','fiona']}
-      )
+        'test': ['pytest', 'coverage', 'fiona']},
+      entry_points="""
+      [console_scripts]
+      bc2pg=pgdata.cli:cli
+      """)

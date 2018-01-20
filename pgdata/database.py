@@ -18,6 +18,8 @@ from .util import row_type
 from .table import Table
 import six
 
+import bcdata
+
 
 class Database(object):
     def __init__(self, url, schema=None, row_type=row_type, sql_path='sql',
@@ -337,3 +339,36 @@ class Database(object):
             command = command.replace("""-f "GeoJSON" """,
                                       """-f "GeoJSON" -t_srs EPSG:4326""")
         subprocess.call(command, shell=True)
+
+    def bcdata2pg(self, url, email, table_name=None, schema='public',
+                  sql=None, dim=2):
+        """
+        A wrapper around ogr2pg and bcdata - download given dataset and load
+        to local pg database
+        """
+        # find schema and table name on catalogue page
+        info = bcdata.info(url)
+        schema, table = (info['schema'], info['name'])
+
+        # override table name if supplied
+        if table_name:
+            table = table_name
+
+        # get email if not supplied
+        if not email:
+            email = os.environ['BCDATA_EMAIL']
+
+        # download the data
+        # (assume that the name of the layer in .gdb is 'schema_table')
+        dl = bcdata.download(url, email)
+
+        # create the schema if it doesn't exist
+        self.create_schema(schema)
+
+        # load the data
+        self.ogr2pg(dl,
+                    in_layer=schema+'_'+table,
+                    out_layer=table,
+                    schema=schema,
+                    sql=sql,
+                    dim=dim)
