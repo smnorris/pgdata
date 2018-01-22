@@ -27,7 +27,7 @@ pgdata is a collection of convenience functions for working with PostgreSQL:
         >>> db.pg2ogr('SELECT * FROM airports_project.result','GPKG', 'output.gpkg')
 
 
-Much is copied directly from [dataset](https://dataset.readthedocs.org/) and further inspiration was taken from [pgwrap](https://github.com/paulchakravarti/pgwrap).
+Much is copied directly from [dataset](https://dataset.readthedocs.org/) and further inspiration was taken from [pgwrap](https://github.com/paulchakravarti/pgwrap). See also [records](https://github.com/kennethreitz/records) and many others.
 
 ## Requirements
 
