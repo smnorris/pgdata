@@ -348,7 +348,7 @@ class Database(object):
         """
         # find schema and table name on catalogue page
         info = bcdata.info(url)
-        schema, table = (info['schema'], info['name'])
+        schema, table = (info['schema'], info['table'])
 
         # override table name if supplied
         if table_name:
@@ -366,12 +366,8 @@ class Database(object):
         self.create_schema(schema)
 
         # load the data
-        self.ogr2pg(dl,
-                    in_layer=schema+'_'+table,
-                    out_layer=table,
-                    schema=schema,
-                    sql=sql,
-                    dim=dim)
+        self.ogr2pg(dl, in_layer=schema+'_'+table, out_layer=table,
+                    schema=schema, sql=sql, dim=dim)
 
         # check that all went well
         if schema+'.'+table in self.tables:

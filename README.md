@@ -95,7 +95,7 @@ db = pgdata.connect()
 for url in [airports, regdist]:
     # what are the official schema and table names of the data source?
     info = bcdata.info(url)
-    schema, table = (info['schema'], info['name'])
+    schema, table = (info['schema'], info['table'])
 
     # grab default email address for DataBC downloads
     email = os.environ['BCDATA_EMAIL']
