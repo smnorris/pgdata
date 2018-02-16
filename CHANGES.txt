@@ -3,6 +3,10 @@ Changes
 
 All issue numbers are relative to https://github.com/smnorris/pgdata/issues.
 
+0.0.7 (2018-02-16)
+------------------
+- update bc2pg to work with bcdata 0.2.0
+
 0.0.6 (2018-01-19)
 ------------------
 - add bc2pg command
