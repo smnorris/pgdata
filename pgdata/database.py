@@ -347,7 +347,11 @@ class Database(object):
         to local pg database
         """
         # find schema and table name on catalogue page
-        info = bcdata.info(url)
+
+        package_info = bcdata.package_show(url)
+        object_name = package_info['object_name'].lower()
+        info = {'schema': object_name.split('.')[0],
+                'table': object_name.split('.')[1]}
         schema, table = (info['schema'], info['table'])
 
         # override table name if supplied

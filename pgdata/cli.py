@@ -24,7 +24,7 @@ def cli(dataset, email, db_url):
     """
     db = pgdata.connect(db_url)
     info = db.bcdata2pg(dataset, email)
-    click.echo(info['schema']+'.'+info['name'] + ' loaded')
+    click.echo(info['schema']+'.'+info['table'] + ' loaded')
 
 
 if __name__ == '__main__':
