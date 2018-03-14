@@ -15,6 +15,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 
 from .util import row_type
+from .util import QueryDict
 from .table import Table
 import six
 
@@ -41,7 +42,7 @@ class Database(object):
             self.engine = create_engine(url)
         self.schema = schema
         self.row_type = row_type
-        self.queries = self.load_queries(sql_path)
+        self.queries = QueryDict()
 
     @property
     def schemas(self):
@@ -89,20 +90,6 @@ class Database(object):
         if table is None or not len(table.strip()):
             raise ValueError("Invalid table name: %r" % table)
         return table.strip()
-
-    def load_queries(self, path):
-        """Load stored queries from specified path and return a dict
-        """
-        if os.path.exists(path):
-            sqlfiles = glob.glob(os.path.join(path, "*.sql"))
-            queries = {}
-            for filename in sqlfiles:
-                with open(filename, 'rb') as f:
-                    key = os.path.splitext(os.path.basename(filename))[0]
-                    queries[key] = six.text_type(f.read())
-            return queries
-        else:
-            return {}
 
     def build_query(self, sql, lookup):
         """

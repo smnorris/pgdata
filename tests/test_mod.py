@@ -33,6 +33,8 @@ DATA = [{"user_id": 1,
 
 def setup():
     create_db(URL)
+    db = connect(URL)
+    db.execute("CREATE EXTENSION IF NOT EXISTS postgis")
 
 
 def test_connect():
@@ -122,6 +124,22 @@ def test_query_keys():
     db = connect(URL)
     sql = "SELECT user_name FROM pgdata.employees WHERE user_id = %s"
     assert db.engine.execute(sql, (1,)).keys() == ['user_name']
+
+
+def test_queryfile():
+    sql_path = 'sql'
+    db = connect(URL)
+    db.execute(db.queries['utmzen2bcalb'])
+    sql = """SELECT
+                routines.routine_name
+             FROM information_schema.routines
+             LEFT JOIN information_schema.parameters
+               ON routines.specific_name=parameters.specific_name
+             WHERE routines.specific_schema='public'
+             AND routines.routine_name = 'utmzen2bcalb'
+             ORDER BY routines.routine_name, parameters.ordinal_position;
+          """
+    assert db.query(sql).fetchone()['routine_name'] == 'utmzen2bcalb'
 
 
 def parallel_query(id):

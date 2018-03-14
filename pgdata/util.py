@@ -2,6 +2,9 @@ from __future__ import absolute_import
 from collections import OrderedDict
 from six import string_types
 from inspect import isgenerator
+import pkg_resources
+import os
+import six
 
 try:
     from urllib.parse import urlparse
@@ -10,6 +13,32 @@ except ImportError:
 
 
 row_type = OrderedDict
+
+
+class QueryDict(object):
+    """Provide a dict like interface to files in the /sql folder
+    """
+    def __init__(self, path=None):
+        self.queries = None
+        self.path = path
+
+    def __getitem__(self, query_name):
+
+        if self.path:
+            filename = os.path.join(self.path, query_name+".sql")
+            if os.path.exists(filename):
+                with open(filename, 'r') as f:
+                    return six.text_type(f.read())
+
+        elif pkg_resources.resource_exists(__name__,
+                                           os.path.join("sql",
+                                                        query_name+'.sql')):
+            return pkg_resources.resource_string(
+                __name__,
+                os.path.join("sql", query_name+'.sql')).decode('utf-8')
+
+        else:
+            raise ValueError("Invalid query name: %r" % query_name)
 
 
 class DatasetException(Exception):
