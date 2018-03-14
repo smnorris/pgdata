@@ -253,12 +253,14 @@ class Database(object):
                s_srs='EPSG:3005', t_srs='EPSG:3005', geom_type=None, append=False):
         """
         A wrapper around ogr2ogr, for quickly dumping a postgis query to file.
-        Suppported formats are ["ESRI Shapefile", "GeoJSON", "FileGDB"]
+        Suppported formats are ["ESRI Shapefile", "GeoJSON", "FileGDB", "GPKG"]
            - for GeoJSON, transforms to EPSG:4326
            - for Shapefile, consider supplying a column_remap dict
            - for FileGDB, geom_type is required
              (https://trac.osgeo.org/gdal/ticket/4186)
         """
+        if driver == 'FileGDB' and geom_type is None:
+            raise ValueError('Specify geom_type when writing to FileGDB')
         filename, ext = os.path.splitext(os.path.basename(outfile))
         if not outlayer:
             outlayer = filename

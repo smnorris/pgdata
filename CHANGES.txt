@@ -3,6 +3,12 @@ Changes
 
 All issue numbers are relative to https://github.com/smnorris/pgdata/issues.
 
+0.0.8
+------------------
+- fail better when `geom_type` is not provided when dumping to FileGDB (#4)
+- require psycopg2 as psycopg2-binary (#12)
+- load sql queries on demand rather than all at once
+
 0.0.7 (2018-02-16)
 ------------------
 - update bc2pg to work with bcdata 0.2.0
