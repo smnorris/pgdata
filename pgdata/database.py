@@ -23,7 +23,7 @@ import bcdata
 
 
 class Database(object):
-    def __init__(self, url, schema=None, row_type=row_type, sql_path='sql',
+    def __init__(self, url, schema=None, row_type=row_type, sql_path=None,
                  multiprocessing=False):
         self.url = url
         u = urlparse(url)
@@ -42,7 +42,7 @@ class Database(object):
             self.engine = create_engine(url)
         self.schema = schema
         self.row_type = row_type
-        self.queries = QueryDict()
+        self.queries = QueryDict(path=self.sql_path)
 
     @property
     def schemas(self):

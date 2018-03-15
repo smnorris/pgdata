@@ -23,13 +23,23 @@ class QueryDict(object):
         self.path = path
 
     def __getitem__(self, query_name):
-
+        # first, look in specified path
+        # throw an error if provided a path and the file doesn't exist
         if self.path:
             filename = os.path.join(self.path, query_name+".sql")
             if os.path.exists(filename):
                 with open(filename, 'r') as f:
                     return six.text_type(f.read())
+            else:
+                raise ValueError("Invalid query path or name: %r" % query_name)
 
+        # next, look in /sql folder in current working directory
+        elif os.path.exists(os.path.join('sql', query_name+".sql")):
+            filename = os.path.join('sql', query_name+".sql")
+            with open(filename, 'r') as f:
+                return six.text_type(f.read())
+
+        # finally, look in the pgdata /sql folder
         elif pkg_resources.resource_exists(__name__,
                                            os.path.join("sql",
                                                         query_name+'.sql')):

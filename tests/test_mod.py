@@ -126,8 +126,7 @@ def test_query_keys():
     assert db.engine.execute(sql, (1,)).keys() == ['user_name']
 
 
-def test_queryfile():
-    sql_path = 'sql'
+def test_find_module_query():
     db = connect(URL)
     db.execute(db.queries['utmzen2bcalb'])
     sql = """SELECT
@@ -140,6 +139,11 @@ def test_queryfile():
              ORDER BY routines.routine_name, parameters.ordinal_position;
           """
     assert db.query(sql).fetchone()['routine_name'] == 'utmzen2bcalb'
+
+
+def test_find_sqlpath_query():
+    db = connect(URL, sql_path='tests/sql')
+    assert db.queries['test'] == "SELECT 1 as test"
 
 
 def parallel_query(id):

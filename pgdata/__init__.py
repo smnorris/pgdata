@@ -11,12 +11,12 @@ from pgdata.table import Table
 __version__ = "0.0.8"
 
 
-def connect(url=None, schema=None, sql_path='sql', multiprocessing=False):
+def connect(url=None, schema=None, sql_path=None, multiprocessing=False):
     """Open a new connection to postgres via psycopg2/sqlalchemy
     """
     if url is None:
         url = os.environ.get('DATABASE_URL')
-    return Database(url, schema, multiprocessing=multiprocessing)
+    return Database(url, schema, sql_path=sql_path, multiprocessing=multiprocessing)
 
 
 def create_db(url=None):

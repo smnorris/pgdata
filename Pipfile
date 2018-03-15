@@ -13,6 +13,7 @@ sqlalchemy-utils = "*"
 "geoalchemy2" = "*"
 alembic = "*"
 bcdata = "*"
+"e1839a8" = {path = ".", editable = true}
 
 
 [dev-packages]
@@ -26,5 +27,3 @@ bcdata = "*"
 pytest = "*"
 coverage = "*"
 fiona = "*"
-
-
