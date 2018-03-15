@@ -3,6 +3,10 @@ Changes
 
 All issue numbers are relative to https://github.com/smnorris/pgdata/issues.
 
+0.0.9 (2018-03-14)
+------------------
+- fix bug where `sql_path` passed to connection was not used (#13)
+
 0.0.8 (2018-03-14)
 ------------------
 - fail better when `geom_type` is not provided when dumping to FileGDB (#4)
