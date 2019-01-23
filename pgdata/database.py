@@ -207,7 +207,7 @@ class Database(object):
             return Table(self, schema, table, columns)
 
     def ogr2pg(self, in_file, in_layer=None, out_layer=None, schema='public',
-               t_srs='EPSG:3005', sql=None, dim=2, cmd_only=False):
+               s_srs=None, t_srs='EPSG:3005', sql=None, dim=2, cmd_only=False):
         """
         Load a layer to provided pgdata database connection using OGR2OGR
 
@@ -244,6 +244,8 @@ class Database(object):
                            (in_layer, sql))
             # remove layer name, it is ignored in combination with sql
             command.pop()
+        if s_srs:
+            command.insert(3, '-s_srs {}'.format(s_srs))
         if cmd_only:
             return " ".join(command)
         else:
