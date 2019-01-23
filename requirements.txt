@@ -2,4 +2,3 @@ sqlalchemy
 sqlalchemy-utils
 geoalchemy2
 alembic
-bcdata

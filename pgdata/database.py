@@ -19,8 +19,6 @@ from .util import QueryDict
 from .table import Table
 import six
 
-import bcdata
-
 
 class Database(object):
     def __init__(
@@ -366,46 +364,3 @@ class Database(object):
                 """-f "GeoJSON" """, """-f "GeoJSON" -t_srs EPSG:4326"""
             )
         subprocess.call(command, shell=True)
-
-    def bcdata2pg(self, url, email, table_name=None, schema="public", sql=None, dim=2):
-        """
-        A wrapper around ogr2pg and bcdata - download given dataset and load
-        to local pg database
-        """
-        # find schema and table name on catalogue page
-
-        package_info = bcdata.package_show(url)
-        object_name = package_info["object_name"].lower()
-        info = {"schema": object_name.split(".")[0], "table": object_name.split(".")[1]}
-        schema, table = (info["schema"], info["table"])
-
-        # override table name if supplied
-        if table_name:
-            table = table_name
-
-        # get email if not supplied
-        if not email:
-            email = os.environ["BCDATA_EMAIL"]
-
-        # download the data
-        # (assume that the name of the layer in .gdb is 'schema_table')
-        dl = bcdata.download(url, email)
-
-        # create the schema if it doesn't exist
-        self.create_schema(schema)
-
-        # load the data
-        self.ogr2pg(
-            dl,
-            in_layer=schema + "_" + table,
-            out_layer=table,
-            schema=schema,
-            sql=sql,
-            dim=dim,
-        )
-
-        # check that all went well
-        if schema + "." + table in self.tables:
-            return info
-        else:
-            raise IOError(schema + "." + table + " was not loaded")
