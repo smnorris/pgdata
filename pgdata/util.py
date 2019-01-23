@@ -9,7 +9,7 @@ import six
 try:
     from urllib.parse import urlparse
 except ImportError:
-     from urlparse import urlparse
+    from urlparse import urlparse
 
 
 row_type = OrderedDict
@@ -18,6 +18,7 @@ row_type = OrderedDict
 class QueryDict(object):
     """Provide a dict like interface to files in the /sql folder
     """
+
     def __init__(self, path=None):
         self.queries = None
         self.path = path
@@ -26,26 +27,26 @@ class QueryDict(object):
         # first, look in specified path
         # throw an error if provided a path and the file doesn't exist
         if self.path:
-            filename = os.path.join(self.path, query_name+".sql")
+            filename = os.path.join(self.path, query_name + ".sql")
             if os.path.exists(filename):
-                with open(filename, 'r') as f:
+                with open(filename, "r") as f:
                     return six.text_type(f.read())
             else:
                 raise ValueError("Invalid query path or name: %r" % query_name)
 
         # next, look in /sql folder in current working directory
-        elif os.path.exists(os.path.join('sql', query_name+".sql")):
-            filename = os.path.join('sql', query_name+".sql")
-            with open(filename, 'r') as f:
+        elif os.path.exists(os.path.join("sql", query_name + ".sql")):
+            filename = os.path.join("sql", query_name + ".sql")
+            with open(filename, "r") as f:
                 return six.text_type(f.read())
 
         # finally, look in the pgdata /sql folder
-        elif pkg_resources.resource_exists(__name__,
-                                           os.path.join("sql",
-                                                        query_name+'.sql')):
+        elif pkg_resources.resource_exists(
+            __name__, os.path.join("sql", query_name + ".sql")
+        ):
             return pkg_resources.resource_string(
-                __name__,
-                os.path.join("sql", query_name+'.sql')).decode('utf-8')
+                __name__, os.path.join("sql", query_name + ".sql")
+            ).decode("utf-8")
 
         else:
             raise ValueError("Invalid query name: %r" % query_name)
@@ -57,10 +58,10 @@ class DatasetException(Exception):
 
 def normalize_column_name(name):
     if not isinstance(name, string_types):
-        raise ValueError('%r is not a valid column name.' % name)
+        raise ValueError("%r is not a valid column name." % name)
     name = name.lower().strip()
-    if not len(name) or '.' in name or '-' in name:
-        raise ValueError('%r is not a valid column name.' % name)
+    if not len(name) or "." in name or "-" in name:
+        raise ValueError("%r is not a valid column name." % name)
     return name
 
 
@@ -75,10 +76,11 @@ class ResultIter(object):
     SQLAlchemy ResultProxies are not iterable to get a list of dictionaries.
     This is to wrap them.
     """
+
     def __init__(self, result_proxies, row_type=row_type):
         self.row_type = row_type
         if not isgenerator(result_proxies):
-            result_proxies = iter((result_proxies, ))
+            result_proxies = iter((result_proxies,))
         self.result_proxies = result_proxies
         self._iter = None
 

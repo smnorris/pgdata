@@ -9,7 +9,7 @@ from xml.sax.saxutils import escape
 try:
     from urllib.parse import urlparse
 except ImportError:
-     from urlparse import urlparse
+    from urlparse import urlparse
 
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
@@ -23,8 +23,9 @@ import bcdata
 
 
 class Database(object):
-    def __init__(self, url, schema=None, row_type=row_type, sql_path=None,
-                 multiprocessing=False):
+    def __init__(
+        self, url, schema=None, row_type=row_type, sql_path=None, multiprocessing=False
+    ):
         self.url = url
         u = urlparse(url)
         self.database = u.path[1:]
@@ -53,7 +54,7 @@ class Database(object):
         sql = """SELECT schema_name FROM information_schema.schemata
                  ORDER BY schema_name"""
         schemas = self.query(sql).fetchall()
-        return [s[0] for s in schemas if s[0][:3] != 'pg_']
+        return [s[0] for s in schemas if s[0][:3] != "pg_"]
 
     @property
     def tables(self):
@@ -69,8 +70,9 @@ class Database(object):
         else:
             tables = []
             for schema in self.schemas:
-                tables = tables +  \
-                          [schema+"."+t for t in self.tables_in_schema(schema)]
+                tables = tables + [
+                    schema + "." + t for t in self.tables_in_schema(schema)
+                ]
             return tables
 
     def print_notices(self):
@@ -105,7 +107,7 @@ class Database(object):
 
         """
         for key, val in six.iteritems(lookup):
-            sql = sql.replace('$'+key, val)
+            sql = sql.replace("$" + key, val)
         return sql
 
     def tables_in_schema(self, schema):
@@ -120,7 +122,7 @@ class Database(object):
         """Parse schema qualified table name
         """
         if "." in table:
-            schema, table = table.split('.')
+            schema, table = table.split(".")
         else:
             schema = None
         return (schema, table)
@@ -176,14 +178,14 @@ class Database(object):
         """Create specified schema if it does not already exist
         """
         if schema not in self.schemas:
-            sql = "CREATE SCHEMA "+schema
+            sql = "CREATE SCHEMA " + schema
             self.execute(sql)
 
     def drop_schema(self, schema, cascade=False):
         """Drop specified schema
         """
         if schema in self.schemas:
-            sql = "DROP SCHEMA "+schema
+            sql = "DROP SCHEMA " + schema
             if cascade:
                 sql = sql + " CASCADE"
             self.execute(sql)
@@ -206,8 +208,18 @@ class Database(object):
         else:
             return Table(self, schema, table, columns)
 
-    def ogr2pg(self, in_file, in_layer=None, out_layer=None, schema='public',
-               s_srs=None, t_srs='EPSG:3005', sql=None, dim=2, cmd_only=False):
+    def ogr2pg(
+        self,
+        in_file,
+        in_layer=None,
+        out_layer=None,
+        schema="public",
+        s_srs=None,
+        t_srs="EPSG:3005",
+        sql=None,
+        dim=2,
+        cmd_only=False,
+    ):
         """
         Load a layer to provided pgdata database connection using OGR2OGR
 
@@ -220,39 +232,49 @@ class Database(object):
             in_layer = os.path.splitext(os.path.basename(in_file))[0]
         if not out_layer:
             out_layer = in_layer.lower()
-        command = ['ogr2ogr',
-                   '--config PG_USE_COPY YES',
-                   '-t_srs '+t_srs,
-                   '-f PostgreSQL',
-                   '''PG:"host={h} user={u} dbname={db} password={pwd}"'''.format(
-                              h=self.host,
-                              u=self.user,
-                              db=self.database,
-                              pwd=self.password),
-                   '-lco OVERWRITE=YES',
-                   '-overwrite',
-                   '-lco SCHEMA={schema}'.format(schema=schema),
-                   '-lco GEOMETRY_NAME=geom',
-                   '-dim {d}'.format(d=dim),
-                   '-nln '+out_layer,
-                   '-nlt PROMOTE_TO_MULTI',
-                   in_file,
-                   in_layer]
+        command = [
+            "ogr2ogr",
+            "--config PG_USE_COPY YES",
+            "-t_srs " + t_srs,
+            "-f PostgreSQL",
+            '''PG:"host={h} user={u} dbname={db} password={pwd}"'''.format(
+                h=self.host, u=self.user, db=self.database, pwd=self.password
+            ),
+            "-lco OVERWRITE=YES",
+            "-overwrite",
+            "-lco SCHEMA={schema}".format(schema=schema),
+            "-lco GEOMETRY_NAME=geom",
+            "-dim {d}".format(d=dim),
+            "-nln " + out_layer,
+            "-nlt PROMOTE_TO_MULTI",
+            in_file,
+            in_layer,
+        ]
         if sql:
-            command.insert(4,
-                           '-sql "SELECT * FROM %s WHERE %s" -dialect SQLITE' %
-                           (in_layer, sql))
+            command.insert(
+                4, '-sql "SELECT * FROM %s WHERE %s" -dialect SQLITE' % (in_layer, sql)
+            )
             # remove layer name, it is ignored in combination with sql
             command.pop()
         if s_srs:
-            command.insert(3, '-s_srs {}'.format(s_srs))
+            command.insert(3, "-s_srs {}".format(s_srs))
         if cmd_only:
             return " ".join(command)
         else:
             subprocess.call(" ".join(command), shell=True)
 
-    def pg2ogr(self, sql, driver, outfile, outlayer=None, column_remap=None,
-               s_srs='EPSG:3005', t_srs='EPSG:3005', geom_type=None, append=False):
+    def pg2ogr(
+        self,
+        sql,
+        driver,
+        outfile,
+        outlayer=None,
+        column_remap=None,
+        s_srs="EPSG:3005",
+        t_srs="EPSG:3005",
+        geom_type=None,
+        append=False,
+    ):
         """
         A wrapper around ogr2ogr, for quickly dumping a postgis query to file.
         Suppported formats are ["ESRI Shapefile", "GeoJSON", "FileGDB", "GPKG"]
@@ -261,29 +283,31 @@ class Database(object):
            - for FileGDB, geom_type is required
              (https://trac.osgeo.org/gdal/ticket/4186)
         """
-        if driver == 'FileGDB' and geom_type is None:
-            raise ValueError('Specify geom_type when writing to FileGDB')
+        if driver == "FileGDB" and geom_type is None:
+            raise ValueError("Specify geom_type when writing to FileGDB")
         filename, ext = os.path.splitext(os.path.basename(outfile))
         if not outlayer:
             outlayer = filename
         u = urlparse(self.url)
-        pgcred = 'host={h} user={u} dbname={db} password={p}'.format(h=u.hostname,
-                                                                     u=u.username,
-                                                                     db=u.path[1:],
-                                                                     p=u.password)
+        pgcred = "host={h} user={u} dbname={db} password={p}".format(
+            h=u.hostname, u=u.username, db=u.path[1:], p=u.password
+        )
         # use a VRT so we can remap columns if a lookoup is provided
         if column_remap:
             # if specifiying output field names, all fields have to be specified
             # rather than try and parse the input sql, just do a test run of the
             # query and grab column names from that
-            columns = [c for c in self.query(sql).keys() if c != 'geom']
+            columns = [c for c in self.query(sql).keys() if c != "geom"]
             # make sure all columns are represented in the remap
             for c in columns:
                 if c not in column_remap.keys():
                     column_remap[c] = c
-            field_remap_xml = " \n".join([
-                '<Field name="'+column_remap[c]+'" src="'+c+'"/>'
-                for c in columns])
+            field_remap_xml = " \n".join(
+                [
+                    '<Field name="' + column_remap[c] + '" src="' + c + '"/>'
+                    for c in columns
+                ]
+            )
         else:
             field_remap_xml = ""
         vrt = """<OGRVRTDataSource>
@@ -293,22 +317,24 @@ class Database(object):
                    {fieldremap}
                    </OGRVRTLayer>
                  </OGRVRTDataSource>
-              """.format(layer=outlayer,
-                         sql=escape(sql.replace("\n", " ")),
-                         pgcred=pgcred,
-                         fieldremap=field_remap_xml)
-        vrtpath = os.path.join(tempfile.gettempdir(), filename+".vrt")
+              """.format(
+            layer=outlayer,
+            sql=escape(sql.replace("\n", " ")),
+            pgcred=pgcred,
+            fieldremap=field_remap_xml,
+        )
+        vrtpath = os.path.join(tempfile.gettempdir(), filename + ".vrt")
         if os.path.exists(vrtpath):
             os.remove(vrtpath)
         with open(vrtpath, "w") as vrtfile:
             vrtfile.write(vrt)
         # if writing to gdb, specify geom type
-        if driver == 'FileGDB':
-            nlt = "-nlt "+geom_type
+        if driver == "FileGDB":
+            nlt = "-nlt " + geom_type
         else:
             nlt = ""
         # automatically update existing multilayer outputs
-        if driver in ('FileGDB', 'GPKG') and os.path.exists(outfile):
+        if driver in ("FileGDB", "GPKG") and os.path.exists(outfile):
             update = "-update"
         else:
             update = ""
@@ -324,22 +350,24 @@ class Database(object):
                         -f "{driver}" {nlt} {append} {update}\
                         {outfile} \
                         {vrt}
-                  """.format(driver=driver,
-                             s_srs=s_srs,
-                             t_srs=t_srs,
-                             nlt=nlt,
-                             append=append,
-                             update=update,
-                             outfile=outfile,
-                             vrt=vrtpath)
+                  """.format(
+            driver=driver,
+            s_srs=s_srs,
+            t_srs=t_srs,
+            nlt=nlt,
+            append=append,
+            update=update,
+            outfile=outfile,
+            vrt=vrtpath,
+        )
         # translate GeoJSON to EPSG:4326
-        if driver == 'GeoJSON':
-            command = command.replace("""-f "GeoJSON" """,
-                                      """-f "GeoJSON" -t_srs EPSG:4326""")
+        if driver == "GeoJSON":
+            command = command.replace(
+                """-f "GeoJSON" """, """-f "GeoJSON" -t_srs EPSG:4326"""
+            )
         subprocess.call(command, shell=True)
 
-    def bcdata2pg(self, url, email, table_name=None, schema='public',
-                  sql=None, dim=2):
+    def bcdata2pg(self, url, email, table_name=None, schema="public", sql=None, dim=2):
         """
         A wrapper around ogr2pg and bcdata - download given dataset and load
         to local pg database
@@ -347,10 +375,9 @@ class Database(object):
         # find schema and table name on catalogue page
 
         package_info = bcdata.package_show(url)
-        object_name = package_info['object_name'].lower()
-        info = {'schema': object_name.split('.')[0],
-                'table': object_name.split('.')[1]}
-        schema, table = (info['schema'], info['table'])
+        object_name = package_info["object_name"].lower()
+        info = {"schema": object_name.split(".")[0], "table": object_name.split(".")[1]}
+        schema, table = (info["schema"], info["table"])
 
         # override table name if supplied
         if table_name:
@@ -358,7 +385,7 @@ class Database(object):
 
         # get email if not supplied
         if not email:
-            email = os.environ['BCDATA_EMAIL']
+            email = os.environ["BCDATA_EMAIL"]
 
         # download the data
         # (assume that the name of the layer in .gdb is 'schema_table')
@@ -368,11 +395,17 @@ class Database(object):
         self.create_schema(schema)
 
         # load the data
-        self.ogr2pg(dl, in_layer=schema+'_'+table, out_layer=table,
-                    schema=schema, sql=sql, dim=dim)
+        self.ogr2pg(
+            dl,
+            in_layer=schema + "_" + table,
+            out_layer=table,
+            schema=schema,
+            sql=sql,
+            dim=dim,
+        )
 
         # check that all went well
-        if schema+'.'+table in self.tables:
+        if schema + "." + table in self.tables:
             return info
         else:
-            raise IOError(schema+'.'+table+' was not loaded')
+            raise IOError(schema + "." + table + " was not loaded")

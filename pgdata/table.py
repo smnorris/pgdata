@@ -28,7 +28,6 @@ log = logging.getLogger(__name__)
 
 
 class Table(object):
-
     def __init__(self, db, schema, table, columns=None):
         self.db = db
         self.schema = schema
@@ -40,13 +39,15 @@ class Table(object):
         # if provided columns (SQLAlchemy columns), create the table
         if table:
             if columns:
-                self.table = SQLATable(table, self.metadata, schema=self.schema,
-                                       *columns)
+                self.table = SQLATable(
+                    table, self.metadata, schema=self.schema, *columns
+                )
                 self.table.create()
             # otherwise just load from db
             else:
-                self.table = SQLATable(table, self.metadata, schema=self.schema,
-                                       autoload=True)
+                self.table = SQLATable(
+                    table, self.metadata, schema=self.schema, autoload=True
+                )
             self.indexes = dict((i.name, i) for i in self.table.indexes)
             self._is_dropped = False
         else:
@@ -107,9 +108,9 @@ class Table(object):
         if not self.primary_key:
             sql = """ALTER TABLE {s}.{t}
                      ADD PRIMARY KEY ({c})
-                  """.format(s=self.schema,
-                             t=self.name,
-                             c=column)
+                  """.format(
+                s=self.schema, t=self.name, c=column
+            )
             self.db.execute(sql)
 
     def drop(self):
@@ -121,7 +122,9 @@ class Table(object):
 
     def _check_dropped(self):
         if self._is_dropped:
-            raise DatasetException('the table has been dropped. this object should not be used again.')
+            raise DatasetException(
+                "the table has been dropped. this object should not be used again."
+            )
 
     def _args_to_clause(self, args):
         clauses = []
@@ -142,11 +145,7 @@ class Table(object):
         """
         self._check_dropped()
         if normalize_column_name(name) not in self._normalized_columns:
-            self.op.add_column(
-                self.table.name,
-                Column(name, type),
-                self.table.schema
-            )
+            self.op.add_column(self.table.name, Column(name, type), self.table.schema)
             self.table = self._update_table(self.table.name)
 
     def drop_column(self, name):
@@ -158,11 +157,7 @@ class Table(object):
         """
         self._check_dropped()
         if name in list(self.table.columns.keys()):
-            self.op.drop_column(
-                self.table.name,
-                name,
-                schema=self.schema
-            )
+            self.op.drop_column(self.table.name, name, schema=self.schema)
             self.table = self._update_table(self.table.name)
 
     def create_index(self, columns, name=None, index_type="btree"):
@@ -174,22 +169,22 @@ class Table(object):
         """
         self._check_dropped()
         if not name:
-            sig = '||'.join(columns+[index_type])
+            sig = "||".join(columns + [index_type])
             # This is a work-around for a bug in <=0.6.1 which would create
             # indexes based on hash() rather than a proper hash.
             key = abs(hash(sig))
-            name = 'ix_%s_%s' % (self.table.name, key)
+            name = "ix_%s_%s" % (self.table.name, key)
             if name in self.indexes:
                 return self.indexes[name]
-            key = sha1(sig.encode('utf-8')).hexdigest()[:16]
-            name = 'ix_%s_%s' % (self.table.name, key)
+            key = sha1(sig.encode("utf-8")).hexdigest()[:16]
+            name = "ix_%s_%s" % (self.table.name, key)
         if name in self.indexes:
             return self.indexes[name]
-        #self.db._acquire()
+        # self.db._acquire()
         columns = [self.table.c[col] for col in columns]
         idx = Index(name, *columns, postgresql_using=index_type)
         idx.create(self.engine)
-        #finally:
+        # finally:
         #    self.db._release()
         self.indexes[name] = idx
         return idx
@@ -221,16 +216,18 @@ class Table(object):
         except KeyError:
             return []
 
-        q = expression.select(columns, distinct=True,
-                              whereclause=and_(*qargs),
-                              order_by=[c.asc() for c in columns])
+        q = expression.select(
+            columns,
+            distinct=True,
+            whereclause=and_(*qargs),
+            order_by=[c.asc() for c in columns],
+        )
         # if just looking at one column, return a simple list
         if len(columns) == 1:
             return itertools.chain.from_iterable(self.engine.execute(q))
         # otherwise return specified row_type
         else:
-            return ResultIter(self.engine.execute(q),
-                              row_type=self.db.row_type)
+            return ResultIter(self.engine.execute(q), row_type=self.db.row_type)
 
     def insert(self, row):
         """
@@ -257,8 +254,10 @@ class Table(object):
             rows = [dict(name='Dolly')] * 10000
             table.insert_many(rows)
         """
+
         def _process_chunk(chunk):
             self.table.insert().execute(chunk)
+
         self._check_dropped()
 
         chunk = []
@@ -274,10 +273,11 @@ class Table(object):
         """Rename the table
         """
         sql = """ALTER TABLE {s}.{t} RENAME TO {name}
-              """.format(s=self.schema, t=self.name, name=name)
+              """.format(
+            s=self.schema, t=self.name, name=name
+        )
         self.engine.execute(sql)
-        self.table = SQLATable(name, self.metadata, schema=self.schema,
-                               autoload=True)
+        self.table = SQLATable(name, self.metadata, schema=self.schema, autoload=True)
 
     def find_one(self, **kwargs):
         """
@@ -285,7 +285,7 @@ class Table(object):
         ::
             row = table.find_one(country='United States')
         """
-        kwargs['_limit'] = 1
+        kwargs["_limit"] = 1
         iterator = self.find(**kwargs)
         try:
             return next(iterator)
@@ -293,13 +293,20 @@ class Table(object):
             return None
 
     def _args_to_order_by(self, order_by):
-        if order_by[0] == '-':
+        if order_by[0] == "-":
             return self.table.c[order_by[1:]].desc()
         else:
             return self.table.c[order_by].asc()
 
-    def find(self, _limit=None, _offset=0, _step=5000,
-             order_by='id', return_count=False, **_filter):
+    def find(
+        self,
+        _limit=None,
+        _offset=0,
+        _step=5000,
+        order_by="id",
+        return_count=False,
+        **_filter
+    ):
         """
         Performs a simple search on the table. Simply pass keyword arguments as ``filter``.
         ::
@@ -322,14 +329,20 @@ class Table(object):
         self._check_dropped()
         if not isinstance(order_by, (list, tuple)):
             order_by = [order_by]
-        order_by = [o for o in order_by if (o.startswith('-') and o[1:] or o) in self.table.columns]
+        order_by = [
+            o
+            for o in order_by
+            if (o.startswith("-") and o[1:] or o) in self.table.columns
+        ]
         order_by = [self._args_to_order_by(o) for o in order_by]
 
         args = self._args_to_clause(_filter)
 
         # query total number of rows first
-        count_query = alias(self.table.select(whereclause=args, limit=_limit, offset=_offset),
-                            name='count_query_alias').count()
+        count_query = alias(
+            self.table.select(whereclause=args, limit=_limit, offset=_offset),
+            name="count_query_alias",
+        ).count()
         rp = self.engine.execute(count_query)
         total_row_count = rp.fetchone()[0]
         if return_count:
@@ -343,7 +356,9 @@ class Table(object):
 
         if total_row_count > _step and not order_by:
             _step = total_row_count
-            log.warn("query cannot be broken into smaller sections because it is unordered")
+            log.warn(
+                "query cannot be broken into smaller sections because it is unordered"
+            )
 
         queries = []
 
@@ -352,10 +367,14 @@ class Table(object):
             qlimit = min(_limit - (_step * i), _step)
             if qlimit <= 0:
                 break
-            queries.append(self.table.select(whereclause=args, limit=qlimit,
-                                             offset=qoffset, order_by=order_by))
-        return ResultIter((self.engine.execute(q) for q in queries),
-                          row_type=self.db.row_type)
+            queries.append(
+                self.table.select(
+                    whereclause=args, limit=qlimit, offset=qoffset, order_by=order_by
+                )
+            )
+        return ResultIter(
+            (self.engine.execute(q) for q in queries), row_type=self.db.row_type
+        )
 
     def count(self, **_filter):
         """
@@ -373,7 +392,7 @@ class Table(object):
             print list(table['year'])
         """
         if not isinstance(item, tuple):
-            item = item,
+            item = (item,)
         return self.distinct(*item)
 
     def all(self):
@@ -395,4 +414,4 @@ class Table(object):
         return self.all()
 
     def __repr__(self):
-        return '<Table(%s)>' % self.table.name
+        return "<Table(%s)>" % self.table.name
