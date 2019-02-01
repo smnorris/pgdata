@@ -232,34 +232,52 @@ class Database(object):
             out_layer = in_layer.lower()
         command = [
             "ogr2ogr",
-            "--config PG_USE_COPY YES",
-            "-t_srs " + t_srs,
-            "-f PostgreSQL",
-            '''PG:"host={h} user={u} dbname={db} password={pwd}"'''.format(
+            "-t_srs",
+            t_srs,
+            "-f",
+            "PostgreSQL",
+            "PG:host={h} user={u} dbname={db} password={pwd}".format(
                 h=self.host, u=self.user, db=self.database, pwd=self.password
             ),
-            "-lco OVERWRITE=YES",
+            "-lco",
+            "OVERWRITE=YES",
             "-overwrite",
-            "-lco SCHEMA={schema}".format(schema=schema),
-            "-lco GEOMETRY_NAME=geom",
-            "-dim {d}".format(d=dim),
-            "-nln " + out_layer,
-            "-nlt PROMOTE_TO_MULTI",
-            '"'+in_file+'"',
-            in_layer,
+            "-lco",
+            "SCHEMA={schema}".format(schema=schema),
+            "-lco",
+            "GEOMETRY_NAME=geom",
+            "-dim",
+            "{d}".format(d=dim),
+            "-nlt",
+            "PROMOTE_TO_MULTI",
+            "-nln",
+            out_layer,
+            in_file
         ]
         if sql:
             command.insert(
-                4, '-sql "SELECT * FROM %s WHERE %s" -dialect SQLITE' % (in_layer, sql)
+                len(command),
+                "-sql"
             )
-            # remove layer name, it is ignored in combination with sql
-            command.pop()
+            command.insert(
+                len(command),
+                "SELECT * FROM {} WHERE {}".format(in_layer, sql)
+            )
+            command.insert(len(command), "-dialect")
+            command.insert(len(command), "SQLITE")
+        # only add output layer name if sql not included (it gets ignored)
+        if not sql:
+            command.insert(
+                len(command),
+                in_layer
+            )
         if s_srs:
-            command.insert(3, "-s_srs {}".format(s_srs))
+            command.insert(len(command), "-s_srs")
+            command.insert(len(command), s_srs)
         if cmd_only:
             return " ".join(command)
         else:
-            subprocess.call(" ".join(command), shell=True)
+            subprocess.run(command)
 
     def pg2ogr(
         self,
@@ -269,7 +287,7 @@ class Database(object):
         outlayer=None,
         column_remap=None,
         s_srs="EPSG:3005",
-        t_srs="EPSG:3005",
+        t_srs=None,
         geom_type=None,
         append=False,
     ):
@@ -326,41 +344,44 @@ class Database(object):
             os.remove(vrtpath)
         with open(vrtpath, "w") as vrtfile:
             vrtfile.write(vrt)
+        # GeoJSON writes to EPSG:4326
+        if driver == 'GeoJSON' and not t_srs:
+            t_srs = "EPSG:4326"
+        # otherwise, default to BC Albers
+        else:
+            t_srs = "EPSG:3005"
+        command = [
+            "ogr2ogr",
+            "-s_srs",
+            s_srs,
+            "-t_srs",
+            t_srs,
+            "-progress",
+            "-f",
+            driver,
+            outfile,
+            vrtpath
+        ]
         # if writing to gdb, specify geom type
         if driver == "FileGDB":
-            nlt = "-nlt " + geom_type
-        else:
-            nlt = ""
+            command.insert(
+                len(command),
+                "-nlt"
+            )
+            command.insert(
+                len(command),
+                geom_type
+            )
         # automatically update existing multilayer outputs
         if driver in ("FileGDB", "GPKG") and os.path.exists(outfile):
-            update = "-update"
-        else:
-            update = ""
+            command.insert(
+                len(command),
+                "-update"
+            )
         # if specified, append to existing output
         if append:
-            append = "-append"
-        else:
-            append = ""
-        command = """ogr2ogr \
-                        -s_srs {s_srs} \
-                        -t_srs {t_srs} \
-                        -progress \
-                        -f "{driver}" {nlt} {append} {update}\
-                        "{outfile}" \
-                        {vrt}
-                  """.format(
-            driver=driver,
-            s_srs=s_srs,
-            t_srs=t_srs,
-            nlt=nlt,
-            append=append,
-            update=update,
-            outfile=outfile,
-            vrt=vrtpath,
-        )
-        # translate GeoJSON to EPSG:4326
-        if driver == "GeoJSON":
-            command = command.replace(
-                """-f "GeoJSON" """, """-f "GeoJSON" -t_srs EPSG:4326"""
+            command.insert(
+                len(command),
+                "-append"
             )
-        subprocess.call(command, shell=True)
+        subprocess.run(command)
