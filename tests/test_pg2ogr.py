@@ -13,13 +13,18 @@ DB = pgdata.connect(URL)
 DB.execute('CREATE SCHEMA IF NOT EXISTS pgdata')
 
 
-DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
-AIRPORTS = os.path.join(DATA, 'bc_airports.json')
+DATA_1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+AIRPORTS = os.path.join(DATA_1, 'bc_airports.json')
+
+# also test a path with spaces
+DATA_2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data space')
+AIRPORTS_2 = os.path.join(DATA_2, 'bc_airports_one.json')
 
 
 class ogrpg(unittest.TestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
+        self.spaced_dir = tempfile.mkdtemp("spa ced")
 
     def test_ogr2pg(self):
         db = DB
@@ -28,6 +33,20 @@ class ogrpg(unittest.TestCase):
         airports = db['pgdata.bc_airports']
         assert 'physical_address' in airports.columns
         assert sum(1 for _ in airports.all()) == 425
+
+    def test_ogr2pg_spaces(self):
+        db = DB
+        db.ogr2pg(AIRPORTS_2, in_layer='bc_airports', out_layer='bc_airports_spaced',
+                  schema='pgdata')
+        airports = db['pgdata.bc_airports_spaced']
+        assert 'physical_address' in airports.columns
+        assert sum(1 for _ in airports.all()) == 1
+
+    def test_pg2ogr_spaces(self):
+        db = DB
+        db.pg2ogr(sql='SELECT * from pgdata.bc_airports_spaced', driver='GeoJSON', outfile=os.path.join(self.spaced_dir, 'test_dump_spaced.json'))
+        c = fiona.open(os.path.join(self.spaced_dir, 'test_dump_spaced.json'), 'r')
+        assert len(c) == 1
 
     def test_pg2geojson(self):
         db = DB
@@ -68,6 +87,7 @@ class ogrpg(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.tempdir)
+        shutil.rmtree(self.spaced_dir)
 
 
 def test_tearDown():

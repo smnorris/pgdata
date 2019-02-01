@@ -245,7 +245,7 @@ class Database(object):
             "-dim {d}".format(d=dim),
             "-nln " + out_layer,
             "-nlt PROMOTE_TO_MULTI",
-            in_file,
+            '"'+in_file+'"',
             in_layer,
         ]
         if sql:
@@ -346,7 +346,7 @@ class Database(object):
                         -t_srs {t_srs} \
                         -progress \
                         -f "{driver}" {nlt} {append} {update}\
-                        {outfile} \
+                        "{outfile}" \
                         {vrt}
                   """.format(
             driver=driver,
