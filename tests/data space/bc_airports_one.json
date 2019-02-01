@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "bc_airports",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "PHYSICAL_ADDRESS": "4401 Bristol Rd, Terrace, BC", "DESCRIPTION": "airport", "AIRPORT_NAME": "Terrace (Northwest Regional) Airport", "SUPPLIED_SOURCE_ID_IND": "N", "SOURCE_DATA_ID": "425", "OCCUPANT_TYPE_DESCRIPTION": "BC Airports", "BUSINESS_CATEGORY_DESCRIPTION": "Air Transportation", "BUSINESS_CATEGORY_CLASS": "airTransportation", "CUSTODIAN_ORG_DESCRIPTION": "Ministry of Forest, Lands and Natural Resource Operations - GeoBC ", "SITE_GEOCODED_IND": null, "NUMBER_OF_RUNWAYS": 2, "OIL_AVAILABILITY_IND": "Y", "RUNWAY_SURFACE": "asphalt", "SEAPLANE_ACCESS_IND": "N", "TC_LID_CODE": null, "SEQUENCE_ID": 571, "SE_ANNO_CAD_DATA": null, "MAX_RUNWAY_LENGTH": 2285.39, "ICAO_CODE": "CYXT", "IATA_CODE": null, "HELICOPTER_ACCESS_IND": "N", "FUEL_AVAILABILITY_IND": "Y", "ELEVATION": 217.32, "DATA_SOURCE_YEAR": "2014", "DATA_SOURCE": "Canadian Flight Supplement", "AIRCRAFT_ACCESS_IND": "Y", "AERODROME_STATUS": "Certified", "DATE_UPDATED": "2016\/06\/07 13:08:43", "KEYWORDS": "aerodrome; airport; airstrip; runway", "LONGITUDE": -128.578333, "LATITUDE": 54.468611, "IMAGE_URL": null, "WEBSITE_URL": null, "CONTACT_FAX": null, "CONTACT_EMAIL": null, "CONTACT_PHONE": "250-635-2659", "LOCALITY": "Terrace", "POSTAL_CODE": null, "STREET_ADDRESS": "4401 Bristol Rd", "ALIAS_ADDRESS": "4401 Bristol Rd, Terrace, BC" }, "geometry": { "type": "Point", "coordinates": [ -128.578332994161883, 54.468610996435757 ] } }
+]
+}
