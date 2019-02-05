@@ -277,7 +277,7 @@ class Database(object):
             command.insert(len(command), s_srs)
         if not index:
             command.insert(len(command), "-lco")
-            command.insert(len(command), "SPATIAL_INDEX=NONE")
+            command.insert(len(command), "SPATIAL_INDEX=NO")
         if cmd_only:
             return " ".join(command)
         else:
