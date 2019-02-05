@@ -3,6 +3,14 @@ Changes
 
 All issue numbers are relative to https://github.com/smnorris/pgdata/issues.
 
+0.0.13 (2019-)
+------------------
+- add index option to ogr2pg to allow disable index creation on geoms (speedup)
+
+0.0.12 (2019-02-01)
+------------------
+- support paths with spaces for ogr2pg and pg2ogr (#16)
+
 0.0.11 (2019-01-25)
 ------------------
 - add missing psycopg2-binary requirement to requirements.txt

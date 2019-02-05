@@ -34,6 +34,12 @@ class ogrpg(unittest.TestCase):
         assert 'physical_address' in airports.columns
         assert sum(1 for _ in airports.all()) == 425
 
+    def test_ogr2pg_noindex(self):
+        db = DB
+        db.ogr2pg(AIRPORTS, in_layer='bc_airports', out_layer='bc_airports_noindex', schema='pgdata', index=False)
+        airports = db['pgdata.bc_airports_noindex']
+        assert len(airports.indexes) == 0
+
     def test_ogr2pg_sql(self):
         db = DB
         db.ogr2pg(AIRPORTS, in_layer='bc_airports', out_layer='bc_airports_sql', schema='pgdata', sql="AIRPORT_NAME='Terrace (Northwest Regional) Airport'")

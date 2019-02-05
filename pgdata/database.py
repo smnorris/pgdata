@@ -217,6 +217,7 @@ class Database(object):
         sql=None,
         dim=2,
         cmd_only=False,
+        index=True
     ):
         """
         Load a layer to provided pgdata database connection using OGR2OGR
@@ -274,6 +275,9 @@ class Database(object):
         if s_srs:
             command.insert(len(command), "-s_srs")
             command.insert(len(command), s_srs)
+        if not index:
+            command.insert(len(command), "-lco")
+            command.insert(len(command), "SPATIAL_INDEX=NONE")
         if cmd_only:
             return " ".join(command)
         else:
