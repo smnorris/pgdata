@@ -215,9 +215,14 @@ class Database(object):
         s_srs=None,
         t_srs="EPSG:3005",
         sql=None,
-        dim=2,
+        fid=None,
+        fid64=False,
+        dim=None,
+        index=True,
+        append=False,
+        geom=True,
         cmd_only=False,
-        index=True
+        cmd_as_list=False,
     ):
         """
         Load a layer to provided pgdata database connection using OGR2OGR
@@ -233,8 +238,6 @@ class Database(object):
             out_layer = in_layer.lower()
         command = [
             "ogr2ogr",
-            "-t_srs",
-            t_srs,
             "-f",
             "PostgreSQL",
             "PG:host={h} user={u} dbname={db} password={pwd}".format(
@@ -245,41 +248,44 @@ class Database(object):
             "-overwrite",
             "-lco",
             "SCHEMA={schema}".format(schema=schema),
-            "-lco",
-            "GEOMETRY_NAME=geom",
-            "-dim",
-            "{d}".format(d=dim),
             "-nlt",
             "PROMOTE_TO_MULTI",
             "-nln",
-            out_layer,
-            in_file
+            out_layer
         ]
+        if t_srs:
+            command = command + ["-t_srs", t_srs]
+        if geom:
+            command = command + ["-lco", "GEOMETRY_NAME=geom"]
+        if geom and dim:
+            command = command + ["-dim", dim]
         if sql:
-            command.insert(
-                len(command),
-                "-sql"
-            )
-            command.insert(
-                len(command),
-                "SELECT * FROM {} WHERE {}".format(in_layer, sql)
-            )
-            command.insert(len(command), "-dialect")
-            command.insert(len(command), "SQLITE")
+            command = command + [
+                "-sql",
+                "SELECT * FROM {} WHERE {}".format(in_layer, sql),
+                "-dialect",
+                "SQLITE"
+            ]
+        if s_srs:
+            command = command + ["-s_srs", s_srs]
+        if not index:
+            command = command + ["-lco", "SPATIAL_INDEX=NONE"]
+        if append:
+            command = command + ["-update", "-append"]
+        if fid:
+            command = command + ["-lco", "FID={}".format(fid)]
+        if fid64:
+            command = command + ["-lco", "FID64=TRUE"]
+        # add file name and layer at the end of list
+        command = command + [in_file]
         # only add output layer name if sql not included (it gets ignored)
         if not sql:
-            command.insert(
-                len(command),
-                in_layer
-            )
-        if s_srs:
-            command.insert(len(command), "-s_srs")
-            command.insert(len(command), s_srs)
-        if not index:
-            command.insert(len(command), "-lco")
-            command.insert(len(command), "SPATIAL_INDEX=NO")
-        if cmd_only:
+            command = command + [in_layer]
+
+        if cmd_only and not cmd_as_list:
             return " ".join(command)
+        if cmd_only and cmd_as_list:
+            return command
         else:
             subprocess.run(command)
 

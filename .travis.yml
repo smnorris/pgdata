@@ -6,7 +6,6 @@ cache:
     - ~/.cache/pip
 env:
   global:
-    - BCDATA_EMAIL=bcdatatesting@gmail.com
     - PIP_WHEEL_DIR=$HOME/.cache/pip/wheels
     - PIP_FIND_LINKS=file://$HOME/.cache/pip/wheels
     - GDALINST=$HOME/gdalinstall
