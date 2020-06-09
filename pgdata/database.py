@@ -26,11 +26,21 @@ class Database(object):
     ):
         self.url = url
         u = urlparse(url)
-        self.database = u.path[1:]
-        self.user = u.username
-        self.password = u.password
-        self.host = u.hostname
+        db, user, password, host, port = (
+            u.path[1:],
+            u.username,
+            u.password,
+            u.hostname,
+            u.port,
+        )
+        self.database = db
+        self.user = user
+        self.password = password
+        self.host = host
         self.port = u.port
+        self.ogr_string = f"PG:host={host} user={user} dbname={db} port={port}"
+        if self.password:
+            self.ogr_string = self.ogr_string + f" password={password}"
         self.sql_path = sql_path
         self.multiprocessing = multiprocessing
         # use null pool to ensure the db object can be used by multiprocessing
@@ -240,8 +250,12 @@ class Database(object):
             "ogr2ogr",
             "-f",
             "PostgreSQL",
-            "PG:host={h} user={u} dbname={db} password={pwd}".format(
-                h=self.host, u=self.user, db=self.database, pwd=self.password
+            "PG:host={h} port={p} user={u} dbname={db} password={pwd}".format(
+                h=self.host,
+                p=self.port,
+                u=self.user,
+                db=self.database,
+                pwd=self.password,
             ),
             "-lco",
             "OVERWRITE=YES",
@@ -251,7 +265,7 @@ class Database(object):
             "-nlt",
             "PROMOTE_TO_MULTI",
             "-nln",
-            out_layer
+            out_layer,
         ]
         if t_srs:
             command = command + ["-t_srs", t_srs]
@@ -264,7 +278,7 @@ class Database(object):
                 "-sql",
                 "SELECT * FROM {} WHERE {}".format(in_layer, sql),
                 "-dialect",
-                "SQLITE"
+                "SQLITE",
             ]
         if s_srs:
             command = command + ["-s_srs", s_srs]
@@ -355,7 +369,7 @@ class Database(object):
         with open(vrtpath, "w") as vrtfile:
             vrtfile.write(vrt)
         # GeoJSON writes to EPSG:4326
-        if driver == 'GeoJSON' and not t_srs:
+        if driver == "GeoJSON" and not t_srs:
             t_srs = "EPSG:4326"
         # otherwise, default to BC Albers
         else:
@@ -370,28 +384,16 @@ class Database(object):
             "-f",
             driver,
             outfile,
-            vrtpath
+            vrtpath,
         ]
         # if writing to gdb, specify geom type
         if driver == "FileGDB":
-            command.insert(
-                len(command),
-                "-nlt"
-            )
-            command.insert(
-                len(command),
-                geom_type
-            )
+            command.insert(len(command), "-nlt")
+            command.insert(len(command), geom_type)
         # automatically update existing multilayer outputs
         if driver in ("FileGDB", "GPKG") and os.path.exists(outfile):
-            command.insert(
-                len(command),
-                "-update"
-            )
+            command.insert(len(command), "-update")
         # if specified, append to existing output
         if append:
-            command.insert(
-                len(command),
-                "-append"
-            )
+            command.insert(len(command), "-append")
         subprocess.run(command)
