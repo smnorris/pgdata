@@ -2,7 +2,7 @@
 
 Python PostgreSQL-PostGIS-SQLAlchemy shortcuts.
 
-[![Build Status](https://travis-ci.org/smnorris/pgdata.svg?branch=master)](https://travis-ci.org/smnorris/pgdata) [![Coverage Status](https://coveralls.io/repos/github/smnorris/pgdata/badge.svg?branch=master)](https://coveralls.io/github/smnorris/pgdata?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/smnorris/pgdata/badge.svg?branch=master)](https://coveralls.io/github/smnorris/pgdata?branch=master)
 
 pgdata is a collection of convenience functions for working with PostgreSQL:
 
